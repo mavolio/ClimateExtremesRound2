@@ -45,6 +45,12 @@ plotave<-dat%>%
   select(Plot, year, drt, type, biomass, block)%>%
   filter(drt!=".")
 
+#export data for dave
+plotave_total<-plotave%>%
+  filter(type=="Total")
+
+write.csv(plotave_total, "ANPP_2012-2017_plotaverages.csv", row.names=F)
+
 #looking at plots over time
 ggplot(data=subset(plotave, type=="Total"&drt=="PD-D"), aes(x=year, y=biomass, color=as.factor(Plot)))+
   geom_point()
