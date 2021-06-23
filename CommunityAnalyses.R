@@ -122,6 +122,7 @@ for (i in 1:length(yrlist)){
   
   out<-data.frame(
     year=yrlist[i],
+    f=perm$aov.tab$F.Model[1],
     p=perm$aov.tab$'Pr(>F)'[1]
   )
   permout<-rbind(permout, out)
@@ -133,8 +134,6 @@ padj<-permout%>%
 sub2013<-spdat2%>%
   filter(year==2017)%>%
   spread(spnum2, cov1, fill=0)
-
-
 
 
 ###using coydn to track community changes thorugh time
@@ -159,6 +158,25 @@ compdiff<-ggplot(data=mult_diff, aes(x=year, y=composition_diff, color=drt2))+
 fig2<-grid.arrange(compdiff, total, ncol=1)
 ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\Fig2.jpeg", fig2, height=200, width=125, units="mm", dpi=300)
 
+
+##what is different about the communties?
+rankdiff<-RAC_difference(df=reldat, time.var="year", species.var='spnum2', abundance.var="relcov", replicate.var="plot", treatment.var="drt", reference.treatment = "C-C")
+
+rankdiffmean<-rankdiff%>%
+  gather(measure, value, richness_diff:species_diff)%>%
+  group_by(year, drt2, measure)%>%
+  summarize(mean=mean(value), sd=sd(value), n=length(value))%>%
+  mutate(se=sd/sqrt(n))
+
+rank<-ggplot(data=rankdiffmean, aes(x=year, y=mean, color=drt2))+
+  geom_point()+
+  geom_line()+
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.1)+
+  facet_wrap(~measure, scales="free")+
+  scale_color_manual(name="Treatment", label=c("C->D", "D->C", "D->D"), values=c("orange", "dodgerblue", 'red'))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\RAC_diff.jpeg", rank, height=200, width=200, units="mm", dpi=300)
 
 # mult_chg<-multivariate_change(df=reldat, time.var="year", species.var='spnum2', abundance.var="relcov", replicate.var="plot", treatment.var = "drt")
 # 
@@ -214,4 +232,23 @@ rac<-
 
 #bind both figures together.
 grid.arrange(NMDS, rac, ncol=2)
+
+
+####figure that dave wants of community and anpp in one fig - need ANPP code for this to work
+comdat<-mult_diff%>%
+  filter(drt2=="PD-D")%>%
+  left_join(ctdiff)%>%
+  select(year, pd, composition_diff)%>%
+  gather(measure, value, pd:composition_diff)
+  
+
+cdDiff<-ggplot(data=comdat, aes(x=year, y=value, color=measure))+
+  geom_point(size=3)+
+  geom_line()+
+  xlab("Year")+
+  ylab('Control-Drought Difference')+
+  scale_color_manual(values =c("black", "darkgreen"), name="", label=c("Community Composition\nDifference", "ANPP Percent Difference"))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\Control_Drought_diff.jpeg", cdDiff, height=100, width=150, units="mm", dpi=300)
 
