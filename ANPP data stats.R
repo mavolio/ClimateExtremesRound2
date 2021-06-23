@@ -98,6 +98,17 @@ anova(m1, ddf="Kenward-Roger") #use this ddf for repeated measures.
 #doing contrasts 
 emmeans(m1, pairwise~drt|year)
 
+####another approach to doing contrasts on just 2015
+
+m15<-lmer(biomass~drt+(1|block)
+         ,data=subset(plotave, type=="Total"&year==2015))
+summary(m15)
+anova(m15, ddf="Kenward-Roger") #use this ddf for repeated measures.
+
+#doing contrasts 
+emmeans(m15, pairwise~drt, adjust="dunnettx")
+
+
 #trying contrasts a different way
 sub2014<-subset(plotave, type=="Total"&year==2014)
 sub2015<-subset(plotave, type=="Total"&year==2015)
@@ -120,3 +131,11 @@ emmeans(mg, pairwise~drt|year)
 subg2015<-subset(plotave, type=="TotGrass"&year==2015)
 pairwise.t.test(x=subg2015$biomass, g=subg2015$drt)
 
+###working on community production difference figure
+ctdiff<-trtave%>%
+  select(year, type, mean, drt)%>%
+  filter(drt=="C-C"|drt=="PD-D", type=="Total")%>%
+  spread(drt, mean)%>%
+  group_by(year)%>%
+  rename(c='C-C', d='PD-D')%>%
+  mutate(pd=(c-d)/c)
