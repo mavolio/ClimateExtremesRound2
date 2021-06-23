@@ -18,7 +18,10 @@ dat<-read.csv("ANPP_2012-2017_combinedrawdata.csv")%>%
          TotForb=Solidago+Forbs,
          Total=Andro+Sorg+Grass+Solidago+Forbs+Woody,
          Totnowood=Andro+Sorg+Grass+Solidago+Forbs)%>%
-  filter(Total!=0)#dropping 210 b/c had a wet spot &Plot!=210
+  filter(Total!=0)%>%
+  mutate(drop=ifelse(Plot==210&year==2015|Plot==102&year==2014, 1, 0))%>%
+  filter(drop!=1)
+
 
 #histogram to look for outliers
 dathist<-dat%>%
@@ -75,14 +78,15 @@ ggplot(data=trtave, aes(x=year, y=mean, color=drt))+
   scale_color_manual(name="Treatment", labels=c("C->C", "C->D", "D->C", "D->D"), values=c("blue", "orange", "lightblue", "red"))
 
 total<-ggplot(data=subset(trtave, type=="Total"), aes(x=year, y=mean, color=drt))+
-  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=0, ymax=Inf, alpha = .2, fill="light gray")+
-  geom_point()+
+  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
+  geom_point(size=3)+
   geom_line()+
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.2)+
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.075)+
   xlab("Year")+
   ylab(expression("Total ANPP (g m"*{}^{-2}*")"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  scale_color_manual(name="Treatment", labels=c("C->C", "C->D", "D->C", "D->D"), values=c("blue", "orange", "lightblue", "red"))
+  scale_color_manual(name="Treatment", labels=c("C->C", "C->D", "D->C", "D->D"), values=c("blue", "orange", "dodgerblue", "red"))+
+  annotate(x=2011.9, y=900, "text", label="B")
 
 ##doing stats on total
 
