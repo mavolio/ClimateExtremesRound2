@@ -146,7 +146,7 @@ compdiff<-ggplot(data=mult_diff, aes(x=year, y=composition_diff, color=drt2))+
   geom_line()+
   xlab("Year")+
   ylab("Compositional Difference")+
-  scale_color_manual(name="Treatment", label=c("C->D", "D->C", "D->D"), values=c("orange", "dodgerblue", 'red'))+
+  scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   annotate(x=2011.9, y=0.35, "text", label="A")+
   annotate(x=2012, y=0.30, "text", label="*", size=8)+
@@ -154,9 +154,9 @@ compdiff<-ggplot(data=mult_diff, aes(x=year, y=composition_diff, color=drt2))+
   annotate(x=2015, y=0.25, "text", label="*", size=8)+
   annotate(x=2016, y=0.36, "text", label="*", size=8)
 
-#to make fig 2 also have to run the ANPP data stats to make total fig
-fig2<-grid.arrange(compdiff, total, ncol=1)
-ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\Fig2.jpeg", fig2, height=200, width=125, units="mm", dpi=300)
+#to make fig 2 also have to run the ANPP data stats to make total fig and the soil resp
+fig2<-grid.arrange(compdiff, total, soilresp, ncol=1)
+ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\Fig2.jpeg", fig2, height=300, width=125, units="mm", dpi=300)
 
 
 ##what is different about the communties?
@@ -178,18 +178,37 @@ rank<-ggplot(data=rankdiffmean, aes(x=year, y=mean, color=drt2))+
 
 ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\RAC_diff.jpeg", rank, height=200, width=200, units="mm", dpi=300)
 
-# mult_chg<-multivariate_change(df=reldat, time.var="year", species.var='spnum2', abundance.var="relcov", replicate.var="plot", treatment.var = "drt")
-# 
-# ggplot(data=mult_chg, aes(x=year2, y=composition_change, color=drt))+
-#   annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
-#   geom_point(size=3)+
-#   geom_line()+
-#   xlab("Year")+
-#   ylab("Compositional Change")+
-#   scale_color_manual(name="Treatment", label=c("C->C", "C->D", "D->C", "D->D"), values=c("blue", "orange", "dodgerblue", 'red'))+
-#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+mult_chg<-multivariate_change(df=reldat, time.var="year", species.var='spnum2', abundance.var="relcov", replicate.var="plot", treatment.var = "drt", reference.time = 2012)
+
+ggplot(data=mult_chg, aes(x=year2, y=composition_change, color=drt))+
+  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
+  geom_point(size=3)+
+  geom_line()+
+  xlab("Year")+
+  ylab("Compositional Change")+
+  scale_color_manual(name="Treatment", label=c("C->C", "C->D", "D->C", "D->D"), values=c("blue", "orange", "dodgerblue", 'red'))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
 grid.arrange(total, compdiff, ncol=1)
+
+rac_chg<-RAC_change(df=reldat, time.var="year", species.var='spnum2', abundance.var="relcov", replicate.var="plot")
+
+rankchangemean<-rac_chg%>%
+  left_join(trt)%>%
+  gather(measure, value, richness_change:losses)%>%
+  group_by(year2, drt, measure)%>%
+  summarize(mean=mean(value), sd=sd(value), n=length(value))%>%
+  mutate(se=sd/sqrt(n))
+
+ggplot(data=rankchangemean, aes(x=year2, y=mean, color=drt))+
+  geom_point()+
+  geom_line()+
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.1)+
+  facet_wrap(~measure, scales="free")+
+  scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")
+
 
 
 ##to make RACs - not sure are going to do this.
@@ -248,7 +267,8 @@ cdDiff<-ggplot(data=comdat, aes(x=year, y=value, color=measure))+
   xlab("Year")+
   ylab('Control-Drought Difference')+
   scale_color_manual(values =c("black", "darkgreen"), name="", label=c("Community Composition\nDifference", "ANPP Percent Difference"))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  geom_hline(yintercept = 0)+annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")
 
 ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\Control_Drought_diff.jpeg", cdDiff, height=100, width=150, units="mm", dpi=300)
 
