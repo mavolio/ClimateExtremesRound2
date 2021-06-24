@@ -85,8 +85,10 @@ total<-ggplot(data=subset(trtave, type=="Total"), aes(x=year, y=mean, color=drt)
   xlab("Year")+
   ylab(expression("Total ANPP (g m"*{}^{-2}*")"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  scale_color_manual(name="Treatment", labels=c("C->C", "C->D", "D->C", "D->D"), values=c("blue", "orange", "dodgerblue", "red"))+
-  annotate(x=2011.9, y=900, "text", label="B")
+  scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
+  annotate(x=2011.9, y=900, "text", label="B")+
+  annotate(x=2015, y=840, "text", label="*", size=8)+
+  annotate(x=2017, y=860, "text", label="*", size=8)
 
 ##doing stats on total
 
@@ -96,7 +98,7 @@ summary(m1)
 anova(m1, ddf="Kenward-Roger") #use this ddf for repeated measures.
 
 #doing contrasts 
-emmeans(m1, pairwise~drt|year)
+emmeans(m1, pairwise~drt|year, adjust="holm")
 
 ####another approach to doing contrasts on just 2015
 
@@ -138,4 +140,5 @@ ctdiff<-trtave%>%
   spread(drt, mean)%>%
   group_by(year)%>%
   rename(c='C-C', d='PD-D')%>%
-  mutate(pd=(c-d)/c)
+  mutate(pd=(d-c)/c)
+
