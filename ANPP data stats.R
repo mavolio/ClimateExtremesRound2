@@ -17,7 +17,8 @@ dat<-read.csv("ANPP_2012-2017_combinedrawdata.csv")%>%
   mutate(TotGrass=Andro+Sorg+Grass,
          TotForb=Solidago+Forbs,
          Total=Andro+Sorg+Grass+Solidago+Forbs+Woody,
-         Totnowood=Andro+Sorg+Grass+Solidago+Forbs)%>%
+         Totnowood=Andro+Sorg+Grass+Solidago+Forbs,
+         Other=Sorg+Grass+Solidago+Forbs+Woody)%>%
   filter(Total!=0)%>%
   mutate(drop=ifelse(Plot==210&year==2015|Plot==102&year==2014, 1, 0))%>%
   filter(drop!=1)
@@ -26,7 +27,7 @@ dat<-read.csv("ANPP_2012-2017_combinedrawdata.csv")%>%
 #histogram to look for outliers
 dathist<-dat%>%
   group_by(Plot, Rep, year)%>%
-  gather(type, value, c(Andro, Sorg, Grass, Solidago, Forbs, Woody, TotGrass, TotForb, Total, Totnowood))
+  gather(type, value, c(Andro, Sorg, Grass, Solidago, Forbs, Woody, TotGrass, TotForb, Total, Totnowood, Other))
 
 ggplot(data=dathist, aes(x=value))+
   geom_histogram()+
@@ -41,9 +42,9 @@ outlierTest(outliermodel)
 
 plotave<-dat%>%
   group_by(Plot, year)%>%
-  summarize_at(vars(Andro, Sorg, Grass, Solidago, Forbs, Woody, TotGrass, TotForb, Total, Totnowood), mean)%>%
+  summarize_at(vars(Andro, Sorg, Grass, Solidago, Forbs, Woody, TotGrass, TotForb, Total, Totnowood, Other), mean)%>%
   left_join(trt)%>%
-  gather(type, value, Andro:Totnowood)%>%
+  gather(type, value, Andro:Other)%>%
   mutate(biomass=value*10)%>%
   select(Plot, year, drt, type, biomass, block)%>%
   filter(drt!=".")
@@ -90,10 +91,11 @@ total<-ggplot(data=subset(trtave, type=="Total"), aes(x=year, y=mean, color=drt)
   annotate(x=2015, y=840, "text", label="*", size=8)+
   annotate(x=2017, y=860, "text", label="*", size=8)
 
+
 ##doing stats on total
 
 m1<-lmer(biomass~drt*as.factor(year)+(1|block/Plot)
-              ,data=subset(plotave, type=="Total"))
+         ,data=subset(plotave, type=="Total"))
 summary(m1)
 anova(m1, ddf="Kenward-Roger") #use this ddf for repeated measures.
 
@@ -103,7 +105,7 @@ emmeans(m1, pairwise~drt|year, adjust="holm")
 ####another approach to doing contrasts on just 2015
 
 m15<-lmer(biomass~drt+(1|block)
-         ,data=subset(plotave, type=="Total"&year==2015))
+          ,data=subset(plotave, type=="Total"&year==2015))
 summary(m15)
 anova(m15, ddf="Kenward-Roger") #use this ddf for repeated measures.
 
@@ -132,6 +134,83 @@ emmeans(mg, pairwise~drt|year)
 #trying contrasts a different way
 subg2015<-subset(plotave, type=="TotGrass"&year==2015)
 pairwise.t.test(x=subg2015$biomass, g=subg2015$drt)
+
+
+##ANPP 2015, 2016
+totand<-trtave%>%
+  filter(type %in% c("Andro", "Sorg", "Forbs", "Woody", "Solidago", "Grass"), year==2015|year==2016)
+
+ggplot(data=totand, aes(x=drt, y=mean, fill=type))+
+  geom_bar(stat="identity")+
+  #geom_errorbar(position="identity", aes(ymin=mean-se, ymax=mean+se), width=0.5)+
+  facet_wrap(~year)
+
+#2015-2016 diff
+totand2<-plotave%>%
+  filter(type %in% c("Total", "Andro", "Other"), year==2015|year==2016)%>%
+  mutate(yr=ifelse(year==2016, "y2016", "y2015"))%>%
+  ungroup()%>%
+  select(yr, block, Plot, biomass, type, drt)%>%
+  spread(yr, biomass)%>%
+  mutate(diff=y2016-y2015)%>%
+  mutate(type2=factor(type, levels=c("Total","Andro","Other"), labels=c("Total","A. gerardii","Other"))) %>%
+  filter(Plot!=210)
+
+diffmean<-totand2%>%
+  group_by(drt, type, type2)%>%
+  summarize(mean=mean(diff, rm.na=T), sd=sd(diff), n=length(diff))%>%
+  mutate(se=sd/sqrt(n))%>%
+  mutate(stat=ifelse(type=="Andro"&drt=="C-C"|type=="Andro"&drt=="PD-C", "B", ifelse(type=="Andro"&drt=="C-D", "AB", ifelse(type=="Andro"&drt=="PD-D", "A", ""))))
+
+difffig<-
+ggplot(data=diffmean, aes(x=drt, y=mean, fill=drt))+
+  geom_bar(stat="identity", color="black")+
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.2)+
+  scale_fill_manual(name="Treatment", breaks=c("C-C", "PD-C", "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
+  facet_wrap(~type2)+
+  xlab("Treatment")+
+  ylab("ANPP Difference (2016-2015)")+
+  scale_x_discrete(limits=c("C-C", "PD-C", "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none")
+  
+ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\Fig4.jpeg", difffig, height=125, width=300, units="mm", dpi=300)
+
+##doing stats on difference
+#total
+mt<-lmer(diff~drt+(1|block)
+         ,data=subset(totand2, type=="Total"))
+summary(mt)
+anova(mt, ddf="Kenward-Roger") #use this ddf for repeated measures.
+
+#andro
+ma<-lmer(diff~drt+(1|block)
+         ,data=subset(totand2, type=="Andro"))
+summary(ma)
+anova(ma, ddf="Kenward-Roger") #use this ddf for repeated measures.
+
+#doing contrasts ##no longer sig b/c correct for multiple tests
+emmeans(ma, pairwise~drt, adjust="holm")
+
+
+#other
+
+mo<-lmer(diff~drt+(1|block)
+         ,data=subset(totand2, type=="Other"))
+summary(mo)
+anova(mo, ddf="Kenward-Roger") #use this ddf for repeated measures.
+
+
+##correct pval
+
+p<-c(0.08451, 0.02364, 0.8959)
+
+p.adjust(p, method="BH")
+
+
+  
+
+
+
 
 ###working on community production difference figure
 ctdiff<-trtave%>%
