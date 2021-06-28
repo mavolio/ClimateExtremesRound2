@@ -85,9 +85,8 @@ total<-ggplot(data=subset(trtave, type=="Total"), aes(x=year, y=mean, color=drt)
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.075)+
   xlab("Year")+
   ylab(expression("Total ANPP (g m"*{}^{-2}*")"))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none")+
   scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
-  annotate(x=2011.9, y=900, "text", label="B")+
   annotate(x=2015, y=840, "text", label="*", size=8)+
   annotate(x=2017, y=860, "text", label="*", size=8)
 
@@ -220,4 +219,18 @@ ctdiff<-trtave%>%
   group_by(year)%>%
   rename(c='C-C', d='PD-D')%>%
   mutate(pd=(d-c)/c)
+
+ggplot(ceemeans15, aes(x=trt, fill = trt)) + 
+  geom_col(aes(y=mA), width = .5, color = 'black')+ 
+  geom_col(aes(y=-mB), width = .5, color = 'black')+
+  geom_errorbar(aes(ymin=mA-seA, ymax=mA+seA), width=.1) +
+  geom_errorbar(aes(ymin=-mB+seB, ymax=-mB-seB), width=.1) +
+  geom_hline(aes(yintercept = 0)) +
+  scale_y_continuous(limits = c(-550, 850)) +
+  ylab(expression(BNPP~(g~m^-2)~~ANPP~(g~m^-2)))+
+  scale_fill_manual(values=c('blue', 'dodger blue', 'orange', 'red')) +
+  xlab("")+
+  theme_bw(12) +
+  theme(panel.grid = element_blank(), legend.position = "none")
+
 
