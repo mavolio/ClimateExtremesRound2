@@ -31,6 +31,10 @@ reldat<-spdat2%>%
   mutate(relcov=cov1/total)%>%
   select(-cov1, -total)
 
+ggplot(data=subset(reldat, spnum2=="s2"), aes(x=year, y=relcov))+
+  geom_point()+
+  facet_wrap(~drt)
+
 # cattraits<-read.csv(paste(my.wd, "/pplots/traits_2021.csv", sep=""))%>%
 #   filter(Genus!="")%>%
 #   select(Genus, Species, Annual.Peren.Bi, Forb.grass.shrub, C3.C4, N.fixer..Y.N...)%>%
@@ -147,16 +151,15 @@ compdiff<-ggplot(data=mult_diff, aes(x=year, y=composition_diff, color=drt2))+
   xlab("Year")+
   ylab("Compositional Difference")+
   scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  annotate(x=2011.9, y=0.35, "text", label="A")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none")+
   annotate(x=2012, y=0.30, "text", label="*", size=8)+
   annotate(x=2014, y=0.23, "text", label="*", size=8)+
   annotate(x=2015, y=0.25, "text", label="*", size=8)+
   annotate(x=2016, y=0.36, "text", label="*", size=8)
 
 #to make fig 2 also have to run the ANPP data stats to make total fig and the soil resp
-fig2<-grid.arrange(compdiff, total, soilresp, ncol=1)
-ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\Fig2.jpeg", fig2, height=300, width=125, units="mm", dpi=300)
+fig2<-grid.arrange(total, soilresp, compdiff, ncol=1)
+ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\Fig2.jpeg", fig2, height=300, width=150, units="mm", dpi=300)
 
 
 ##what is different about the communties?
