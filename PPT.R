@@ -105,7 +105,6 @@ points(297.1,dnorm.2010,col='black',bg='red',pch=21,cex=3)
 text(345,dnorm.2010,'2010',cex=0.75)
 points(236.3,dnorm.2011,col='black',bg='red',pch=21,cex=3)
 text(280,dnorm.2011,'2011',cex=0.75)
-
 points(262.2,dnorm.2014,col='black',bg='red',pch=21,cex=3)
 text(305,dnorm.2014,'2014',cex=0.75)
 points(240.9,0.00045,col='black',bg='red',pch=21,cex=3) #offset a little
@@ -116,13 +115,16 @@ points(594.0,dnorm.2010.c,col='black',bg='blue',pch=21,cex=3)
 text(550,dnorm.2010.c,'2010',cex=0.75)
 points(607.3,dnorm.2011.c,col='black',bg='blue',pch=21,cex=3)
 text(565,0.002,'2011',cex=0.75)
-
 points(448.7,dnorm.2014.c,col='black',bg='blue',pch=21,cex=3)
 text(405,dnorm.2014.c,'2014',cex=0.75)
 points(653.3,dnorm.2015.c,col='black',bg='blue',pch=21,cex=3)
 text(610,dnorm.2015.c,'2015',cex=0.75)
 
 #recovery years
+points(626.5,dnorm.2012,col='black',bg='blue',pch=21,cex=3)
+text(585,0.0019,'2012',cex=0.75)
+points(552.2,dnorm.2013,col='black',bg='blue',pch=21,cex=3)
+text(595,dnorm.2013,'2013',cex=0.75)
 points(710.3,dnorm.2016,col='black',bg='blue',pch=21,cex=3)
 text(665,dnorm.2016,'2016',cex=0.75)
 points(449.3,0.0022,col='black',bg='blue',pch=21,cex=3) #essentially same as 2014 control, so offset a little
