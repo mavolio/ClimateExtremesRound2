@@ -16,7 +16,7 @@ setwd(dirname(current_path))
 # barplot 
 
 # Load file 
-ppt<-read.csv("Manhattan_Climate_Daily1900-2012.csv")
+ppt<-read.csv("./../../CEE_Part2/Precipitation/Manhattan_Climate_Daily1900-2012.csv")
 head(ppt)
 
 #subset to april-august
@@ -36,7 +36,7 @@ mean_ppt <- mean(ppt_april_august_total$Precip)
 #get SD
 sd_ppt <- sd(ppt_april_august_total$Precip)
 
-cee_ppt <- read.csv('CEE_ppt_2010_2018_v2.csv')
+cee_ppt <- read.csv('./../../CEE_Part2/Precipitation/CEE_ppt_2010_2018_v2.csv')
 
 #--------------
 # PDF figure for figure 1 -------
@@ -59,6 +59,9 @@ dnorm.2016.pnorm <- pnorm(710.3, mean=mean_ppt,sd=sd_ppt)
 
 #controls
 cee_ppt
+
+dnorm.2010.c <- dnorm(594.0, mean=mean_ppt,sd=sd_ppt)
+dnorm.2011.c <- dnorm(607.3, mean=mean_ppt,sd=sd_ppt)
 dnorm.2014.c <- dnorm(448.7, mean=mean_ppt,sd=sd_ppt)
 dnorm.2015.c <- dnorm(653.3, mean=mean_ppt,sd=sd_ppt)
 
@@ -98,25 +101,36 @@ abline(v=quantile_.95 ,add=TRUE,col='blue',add=TRUE,lwd=5)
 #points(236.3,dnorm.2011,col='tan1',pch=19,cex=2.1)
 
 #drought years
+points(297.1,dnorm.2010,col='black',bg='red',pch=21,cex=3)
+text(345,dnorm.2010,'2010',cex=0.75)
+points(236.3,dnorm.2011,col='black',bg='red',pch=21,cex=3)
+text(280,dnorm.2011,'2011',cex=0.75)
+
 points(262.2,dnorm.2014,col='black',bg='red',pch=21,cex=3)
 text(305,dnorm.2014,'2014',cex=0.75)
-points(240.9,dnorm.2015,col='black',bg='red',pch=21,cex=3)
-text(285,dnorm.2015,'2015',cex=0.75)
-
+points(240.9,0.00045,col='black',bg='red',pch=21,cex=3) #offset a little
+text(285,0.00045,'2015',cex=0.75)
+cee_ppt
 #controls during drought years
+points(594.0,dnorm.2010.c,col='black',bg='blue',pch=21,cex=3)
+text(550,dnorm.2010.c,'2010',cex=0.75)
+points(607.3,dnorm.2011.c,col='black',bg='blue',pch=21,cex=3)
+text(565,0.002,'2011',cex=0.75)
+
 points(448.7,dnorm.2014.c,col='black',bg='blue',pch=21,cex=3)
-text(495,dnorm.2014.c,'2014',cex=0.75)
+text(405,dnorm.2014.c,'2014',cex=0.75)
 points(653.3,dnorm.2015.c,col='black',bg='blue',pch=21,cex=3)
 text(610,dnorm.2015.c,'2015',cex=0.75)
 
 #recovery years
-points(710.3,dnorm.2016,col='black',bg='grey',pch=21,cex=3)
+points(710.3,dnorm.2016,col='black',bg='blue',pch=21,cex=3)
 text(665,dnorm.2016,'2016',cex=0.75)
-points(449.3,0.0022,col='black',bg='grey',pch=21,cex=3) #essentially same as 2014 control, so offset a little
-text(405,0.0022,'2017',cex=0.75)
-legend(370, 0.0008, legend=c("Drought","Control", "Recovery"),         #alpha legend: 0.015, 150
-       col=c("red", "blue","grey"), lty=1.25,lwd=5,cex=1.25,box.lty=0)
+points(449.3,0.0022,col='black',bg='blue',pch=21,cex=3) #essentially same as 2014 control, so offset a little
+text(408,0.00225,'2017',cex=0.75)
+# legend(370, 0.0008, legend=c("Drought","Control", "Recovery"),         #alpha legend: 0.015, 150
+#        col=c("red", "blue","grey"), lty=1.25,lwd=5,cex=1.25,box.lty=0)
 
 dev.off()
 
 #----
+
