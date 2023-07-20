@@ -6,6 +6,8 @@ library(car)
 
 
 setwd("C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//ANPP//")
+setwd("E://Dropbox//Konza Research//CEE_Part2//ANPP//")
+
 
 theme_set(theme_bw(12))
 
