@@ -21,10 +21,13 @@ library(lubridate)
 library(multcompView)
 
 ####################################
-#load data
+#load data 
 anpp.1<-read.csv("H:/Collaborations/CEE2/analysis/data/ANPP_2012-2017_plotaverages_v2.csv")
 trt<-read.csv(("H:/Collaborations/CEE2/analysis/data/CEE_treatments_2023.csv"))
 
+
+###if meghan is running the code start with ANPP data stats to get plotave_total
+anpp.1<-plotave_total
 ####################################
 anpp.1<-left_join(anpp.1, trt)
 
