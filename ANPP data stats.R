@@ -11,19 +11,22 @@ setwd("E://Dropbox//Konza Research//CEE_Part2//ANPP//")
 
 theme_set(theme_bw(12))
 
-trt<-read.csv("CEE_treatments_2018.csv")%>%
+trt<-read.csv("CEE_treatments_2023.csv")%>%
   rename(Plot=plot)
 
+#only use 2013-2016
 dat<-read.csv("ANPP_2012-2017_combinedrawdata.csv")%>%
   select(-X)%>%
   mutate(TotGrass=Andro+Sorg+Grass,
          TotForb=Solidago+Forbs,
          Total=Andro+Sorg+Grass+Solidago+Forbs+Woody,
          Totnowood=Andro+Sorg+Grass+Solidago+Forbs,
-         Other=Sorg+Grass+Solidago+Forbs+Woody)%>%
+         Other=Sorg+Grass+Solidago+Forbs+Woody,
+         Othernowood=Sorg+Grass+Solidago+Forbs)%>%
   filter(Total!=0)%>%
   mutate(drop=ifelse(Plot==210&year==2015|Plot==102&year==2014, 1, 0))%>%
-  filter(drop!=1)
+  filter(drop!=1) %>% 
+  filter(year>2012&year<2017)
 
 
 #histogram to look for outliers
@@ -31,7 +34,7 @@ dathist<-dat%>%
   group_by(Plot, Rep, year)%>%
   gather(type, value, c(Andro, Sorg, Grass, Solidago, Forbs, Woody, TotGrass, TotForb, Total, Totnowood, Other))
 
-ggplot(data=dathist, aes(x=value))+
+ggplot(data=dathist, aes(x=log(value)))+
   geom_histogram()+
   facet_wrap(~type, scales="free")
 
@@ -41,19 +44,18 @@ outliermodel<-lm(value~year, data=subtot)
 plot(outliermodel)
 outlierTest(outliermodel)
 
-
 plotave<-dat%>%
   group_by(Plot, year)%>%
-  summarize_at(vars(Andro, Sorg, Grass, Solidago, Forbs, Woody, TotGrass, TotForb, Total, Totnowood, Other), mean)%>%
+  summarize_at(vars(Andro, Sorg, Grass, Solidago, Forbs, Woody, TotGrass, TotForb, Total, Totnowood, Other, Othernowood), mean)%>%
   left_join(trt)%>%
-  gather(type, value, Andro:Other)%>%
+  gather(type, value, Andro:Othernowood)%>%
   mutate(biomass=value*10)%>%
-  select(Plot, year, drt, type, biomass, block)%>%
-  filter(drt!=".")
+  select(Plot, year, drt1,drt2, drt, type, biomass, halfblock, block)%>%
+  filter(drt2!=".")
 
 #export data for dave
 plotave_total<-plotave%>%
-  filter(type=="Total")
+  filter(type=="Total"|type=="Total")
 
 write.csv(plotave_total, "ANPP_2012-2017_plotaverages.csv", row.names=F)
 
@@ -66,42 +68,80 @@ ggplot(data=plotave, aes(x=biomass))+
   geom_histogram()+
   facet_wrap(~type, scales="free")
 
+
+
+
+##doing stats on total only for the paper
+
+mtot<-lmer(biomass~drt*as.factor(year)+(1|block/Plot)
+         , data=subset(plotave, type=="Total"))
+anova(mtot) #use this ddf for repeated measures.
+
+#doing contrasts 
+emmeans(mtot, pairwise~drt|year, adjust="tukey")
+
 trtave<-plotave%>%
   group_by(year, drt, type)%>%
   summarize(mean=mean(biomass), sd=sd(biomass), n=length(biomass))%>%
   mutate(se=sd/sqrt(n))
 
-ggplot(data=trtave, aes(x=year, y=mean, color=drt))+
-  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=0, ymax=Inf, alpha = .2, fill="light gray")+
-  geom_point()+
-  geom_line()+
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.2)+
-  facet_wrap(~type, scales="free")+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  scale_color_manual(name="Treatment", labels=c("C->C", "C->D", "D->C", "D->D"), values=c("blue", "orange", "lightblue", "red"))
+tottoplot<-trtave %>% 
+  filter(type=="Total") %>% 
+  mutate(label=ifelse(year==2015&drt=="C-C", "A", ifelse(year==2015&drt=="PD-C", "AB", ifelse(year==2015&drt=="C-D", "BC", ifelse(year==2015&drt=="PD-D", "C", "")))))
 
-total<-ggplot(data=subset(trtave, type=="Total"), aes(x=year, y=mean, color=drt))+
+# ggplot(data=subset(trtave, type %in% c("Total",'Andro','Sorg','TotGrass','TotForb')), aes(x=year, y=mean, color=drt))+
+#   annotate("rect", xmin=2013.5, xmax=2015.5, ymin=0, ymax=Inf, alpha = .2, fill="light gray")+
+#   geom_point()+
+#   geom_line()+
+#   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.2)+
+#   facet_wrap(~type, scales="free")+
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+#   scale_color_manual(name="Treatment", labels=c("C->C", "C->D", "D->C", "D->D"), values=c("blue", "orange", "lightblue", "red"))+
+#   facet_wrap(~type, scales="free")
+ggplot(data=tottoplot, aes(x=year, y=mean, color=drt, label=label))+
   annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
   geom_point(size=3)+
   geom_line()+
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.075)+
   xlab("Year")+
   ylab(expression("Total ANPP (g m"*{}^{-2}*")"))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "top")+
   scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
-  annotate(x=2015, y=840, "text", label="*", size=8)+
-  annotate(x=2017, y=860, "text", label="*", size=8)
+  geom_text(color="black", nudge_x = 0.15, nudge_y = 20)
 
-
-##doing stats on total
-
-m1<-lmer(biomass~drt*as.factor(year)+(1|block/Plot)
-         ,data=subset(plotave, type=="Total"))
-summary(m1)
-anova(m1, ddf="Kenward-Roger") #use this ddf for repeated measures.
-
-#doing contrasts 
-emmeans(m1, pairwise~drt|year, adjust="holm")
+# ##doing stats on Andro
+# mandro<-lmer(log(biomass)~drt*as.factor(year)+(1|block/Plot)
+#          ,data=subset(plotave, type=="Andro"))
+# summary(mandro)
+# anova(mandro, ddf="Kenward-Roger") #use this ddf for repeated measures.
+# #doing contrasts 
+# emmeans(mandro, pairwise~drt|year, adjust="holm")
+# 
+# ##doing stats on Sorg
+# msorg<-lmer(log(biomass+0.01)~drt*as.factor(year)+(1|block/Plot)
+#          ,data=subset(plotave, type=="Sorg"))
+# summary(msorg)
+# anova(msorg) #use this ddf for repeated measures.
+# #doing contrasts 
+# emmeans(msorg, pairwise~drt|year, adjust="holm")
+# 
+# ##doing stats on Grass
+# mgrass<-lmer(log(biomass)~drt*as.factor(year)+(1|block/Plot)
+#             ,data=subset(plotave, type=="TotGrass"))
+# summary(mgrass)
+# anova(mgrass) #use this ddf for repeated measures.
+# #doing contrasts 
+# emmeans(mgrass, pairwise~drt|year, adjust="holm")
+# 
+# ##doing stats on Forbs
+# mforb<-lmer(log(biomass+0.01)~drt*as.factor(year)+(1|block/Plot)
+#          ,data=subset(plotave, type=="TotForb"))
+# summary(m1)
+# anova(mforb, ddf="Kenward-Roger") #use this ddf for repeated measures.
+# 
+# #doing contrasts 
+# emmeans(mforb, pairwise~drt|year, adjust="holm")
+# 
 
 ####another approach to doing contrasts on just 2015
 
