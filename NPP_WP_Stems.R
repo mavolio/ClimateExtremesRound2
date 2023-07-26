@@ -164,6 +164,7 @@ BNPP<-read.csv("C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//BNPP//C
 trts<-read.csv("C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//ANPP//CEE_treatments_2023.csv")
 ANPP<-read.csv()
 
+bnpp15<-read.csv("~/Desktop/CEE_R/CEE_IGCs_2015_R.csv")
 
 npp<-bnpp %>% 
   left_join(trts)
@@ -206,7 +207,7 @@ bnpp_plot
 
 ## testing correlations of ANPP with WP, stem density, and BNPP in 2015
 
-cee15<-read.csv("~/Desktop/CEE_R/CEE_ANPP_BNPP_WP_stems_2015.csv")
+cee15<-read.csv("C:\\Users//mavolio2//Dropbox//Konza Research//CEE_Part2//BNPP//CEE_ANPP_BNPP_WP_stems_2015.csv")
 
 str(cee15)
 cee15$plot<-as.factor(cee15$plot)
@@ -319,7 +320,7 @@ ggsave(filename = "fig3.pdf",
 
 ## testing correlations of ANPP with WP, stem density, and BNPP in 2016
 
-cee16<-read.csv("~/Desktop/CEE_R/CEE_ANPP_BNPP_WP_stems_2016.csv")
+cee16<-read.csv("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\BNPP\\CEE_ANPP_BNPP_WP_stems_2016.csv")
 
 str(cee16)
 cee16$plot<-as.factor(cee16$plot)
