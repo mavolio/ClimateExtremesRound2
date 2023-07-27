@@ -28,6 +28,8 @@ dat<-read.csv("ANPP_2012-2017_combinedrawdata.csv")%>%
   filter(drop!=1) %>% 
   filter(year>2012&year<2017)
 
+plot(dat$Andro, dat$Total)
+
 
 #histogram to look for outliers
 dathist<-dat%>%
@@ -52,6 +54,8 @@ plotave<-dat%>%
   mutate(biomass=value*10)%>%
   select(Plot, year, drt1,drt2, drt, type, biomass, halfblock, block)%>%
   filter(drt2!=".")
+
+plot(plotave$Andro, plotave$Total)
 
 #export data for dave
 plotave_total<-plotave%>%
@@ -108,6 +112,20 @@ ggplot(data=tottoplot, aes(x=year, y=mean, color=drt, label=label))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "top")+
   scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
   geom_text(color="black", nudge_x = 0.15, nudge_y = 20)
+
+
+
+# ##looking at 2014 2015 difference
+# drtbuild<-plotave %>% 
+#   filter(type=='Total', year==2014|year==2015, drt=='C-D'|drt=='PD-D') %>% 
+#   select(year, Plot, drt, block, biomass) %>% 
+#   pivot_wider(names_from = year, values_from = biomass, names_prefix = 'y') %>% 
+#   mutate(drt2diff=y2015-y2014)
+# 
+# mdrt2<-lmer(drt2diff~drt+(1|block)
+#            , data=drtbuild)
+# anova(mdrt2) #use this ddf for repeated measures.
+# emmeans(mdrt2, pairwise~drt, adjust="tukey")
 
 # ##doing stats on Andro
 # mandro<-lmer(log(biomass)~drt*as.factor(year)+(1|block/Plot)
@@ -193,7 +211,7 @@ totand2<-plotave%>%
   ungroup()%>%
   select(yr, block, Plot, biomass, type, drt)%>%
   spread(yr, biomass)%>%
-  mutate(diff=y2016-y2015)%>%
+  mutate(change=y2016-y2015)%>%
   mutate(type2=factor(type, levels=c("Total","Andro","Other"), labels=c("Total","A. gerardii","Other"))) %>%
   filter(Plot!=210)
 
@@ -252,27 +270,27 @@ p.adjust(p, method="BH")
 
 
 
-
-###working on community production difference figure
-ctdiff<-trtave%>%
-  select(year, type, mean, drt)%>%
-  filter(drt=="C-C"|drt=="PD-D", type=="Total")%>%
-  spread(drt, mean)%>%
-  group_by(year)%>%
-  rename(c='C-C', d='PD-D')%>%
-  mutate(pd=(d-c)/c)
-
-ggplot(ceemeans15, aes(x=trt, fill = trt)) + 
-  geom_col(aes(y=mA), width = .5, color = 'black')+ 
-  geom_col(aes(y=-mB), width = .5, color = 'black')+
-  geom_errorbar(aes(ymin=mA-seA, ymax=mA+seA), width=.1) +
-  geom_errorbar(aes(ymin=-mB+seB, ymax=-mB-seB), width=.1) +
-  geom_hline(aes(yintercept = 0)) +
-  scale_y_continuous(limits = c(-550, 850)) +
-  ylab(expression(BNPP~(g~m^-2)~~ANPP~(g~m^-2)))+
-  scale_fill_manual(values=c('blue', 'dodger blue', 'orange', 'red')) +
-  xlab("")+
-  theme_bw(12) +
-  theme(panel.grid = element_blank(), legend.position = "none")
-
-
+# 
+# ###working on community production difference figure
+# ctdiff<-trtave%>%
+#   select(year, type, mean, drt)%>%
+#   filter(drt=="C-C"|drt=="PD-D", type=="Total")%>%
+#   spread(drt, mean)%>%
+#   group_by(year)%>%
+#   rename(c='C-C', d='PD-D')%>%
+#   mutate(pd=(d-c)/c)
+# 
+# ggplot(ceemeans15, aes(x=trt, fill = trt)) + 
+#   geom_col(aes(y=mA), width = .5, color = 'black')+ 
+#   geom_col(aes(y=-mB), width = .5, color = 'black')+
+#   geom_errorbar(aes(ymin=mA-seA, ymax=mA+seA), width=.1) +
+#   geom_errorbar(aes(ymin=-mB+seB, ymax=-mB-seB), width=.1) +
+#   geom_hline(aes(yintercept = 0)) +
+#   scale_y_continuous(limits = c(-550, 850)) +
+#   ylab(expression(BNPP~(g~m^-2)~~ANPP~(g~m^-2)))+
+#   scale_fill_manual(values=c('blue', 'dodger blue', 'orange', 'red')) +
+#   xlab("")+
+#   theme_bw(12) +
+#   theme(panel.grid = element_blank(), legend.position = "none")
+# 
+# 
