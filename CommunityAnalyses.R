@@ -15,7 +15,7 @@ my.wd<-setwd("C:/Users/mavolio2/Dropbox/Konza Research")
 spdat<-read.csv(paste(my.wd, "/CEE_Part2/Sppcomp/Entered/spcomp_cee_2010_2017.csv", sep = ""))%>%
   filter(year>2011)
 
-trt<-read.csv(paste(my.wd, "/CEE_Part2/Sppcomp/CEE_treatments_2018.csv", sep = ""))
+trt<-read.csv(paste(my.wd, "/CEE_Part2/ANPP/CEE_treatments_2023.csv", sep = ""))
 
 spdat2<-spdat%>%
   left_join(trt)%>%
@@ -50,18 +50,18 @@ ggplot(data=subset(reldat, spnum2=="s2"), aes(x=year, y=relcov))+
 #   group_by(year, drt, spnum2)%>%
 #   summarize(mabund=mean(cov1))
 
-subyears<-reldat%>%
-  filter(year==2016)
+# subyears<-reldat%>%
+#   filter(year==2016)
 
 #make the dataset wide for vegan
-compwide<-subyears%>%
+compwide<-reldat%>%
   spread(spnum2, relcov, fill=0)
 
 #pull out plot info
 plots<-compwide[,1:4]
 
 #run nmds
-mds<-metaMDS(compwide[,5:85], trymax = 100)
+mds<-metaMDS(compwide[,5:85], trymax = 500)
 mds
 
 #extract NMDS coordinates and bind to plot info for graphs
@@ -80,15 +80,16 @@ scores<-plots%>%
 
 #make figure with first and last year labeled and path between points connected
 NMDS<-
-  ggplot(data=scores, aes(x=MDS1, y=MDS2, color=drt, label=label))+
+  ggplot(data=scores, aes(x=MDS1, y=MDS2, color=drt))+
   geom_point(size=3)+
-  geom_path()+
-  geom_text_repel(show.legend = F)+
   scale_color_manual(name="Treatment", values = c("blue", "orange", "lightblue", "red"), labels=c("C->C", "C->D", "D->C", "D->D"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   ylab("NMDS2")+
-  xlab("NMDS1")#+
+  xlab("NMDS1")+
+  facet_wrap(~year)#+
   annotate(x=-0.35, y = -0.4, "text", label= "Stress = 0.19")
+  
+  
 
 
 #make figure with error bars fo year subsets
