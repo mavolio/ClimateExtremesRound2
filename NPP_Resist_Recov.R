@@ -124,8 +124,8 @@ baci.tot.2<-baci.tot.1%>%
   pivot_longer(cols= After:Recovery, names_to = "variable", values_to = "val")
 
 #models
-ggplot(data=baci.tot.2, aes(x=val))+
-  geom_histogram()+
+ggplot(data=baci.tot.2, aes(x=drt, y=val))+
+  geom_boxplot()+
   facet_wrap(~variable, scales = "free")
 
 m.resistance<-lmer(val~drt+(1|block), data=subset(baci.tot.2, 
@@ -229,6 +229,53 @@ ggplot(data=subset(baci.bnpp.3, variable == "Recovery"), aes(x=drt, y = mean, fi
   annotate("text", x=3, y=0.8, label="A", size=4)+
   annotate("text", x=4, y=3, label="B", size=4)
 
+#For NPP
+npp.2<-NPP%>%
+  mutate(period=ifelse(year==2015, "During", ifelse(year == 2016, "After", "drop")))%>%
+  filter(period != "drop")
+
+baci.npp.1<-npp.2%>%
+  select(-year, -bnpp, -anpp) %>% 
+  pivot_wider(names_from = period, values_from = npp)%>%
+  mutate(Recovery=(After-During)/During)
+
+baci.npp.2<-baci.npp.1%>%
+  pivot_longer(cols= During:Recovery, names_to = "variable", values_to = "val")
+
+
+#models
+ggplot(data=baci.npp.2, aes(x=val))+
+  geom_histogram()+
+  facet_wrap(~variable, scales = "free")
+
+
+#we are going to call recovery resilience
+m.npp.recovery<-lmer(val~drt+(1|block), data=subset(baci.npp.2, 
+                                                     variable == "Recovery"))
+anova(m.npp.recovery)  
+emmeans(m.npp.recovery, pairwise~drt, adjust = "tukey")
+
+#means
+baci.npp.3<-baci.npp.2%>%
+  filter(variable=="Recovery") %>% 
+  group_by(drt, variable)%>%
+  summarise(mean= mean(val, na.rm=T), sdev=sd(val, na.rm=T), n=length(val)) %>% 
+  mutate(se=sdev/sqrt(8))
+
+
+ggplot(data=subset(baci.npp.3, variable == "Recovery"), aes(x=drt, y = mean, fill=drt))+
+  geom_col(aes(y=mean), width = .5, color = 'black')+ 
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.1) +
+  scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C-C", 'D-C', 'C-D', 'D-D'))+
+  ylab("NPP Recovery")+
+  scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
+  xlab("")+
+  theme_bw(12)+
+  theme(panel.grid = element_blank(), legend.position = "none")+
+  annotate("text", x=1, y=0.3, label="A", size=4)+
+  annotate("text", x=2, y=0.45, label="A", size=4)+
+  annotate("text", x=3, y=0.85, label="A", size=4)+
+  annotate("text", x=4, y=1.55, label="B", size=4)
 
 ##combine to one dataset
 baci.tot.clean<-baci.tot.1 %>% 
