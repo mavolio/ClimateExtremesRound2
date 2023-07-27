@@ -393,6 +393,9 @@ ggsave(filename = "ANPP Correlation Plots 2016.pdf",
 lm.stems.npp2<- lm(npp~stems, data=cee16)
 summary(lm.stems.npp2)
 
+lm.stems.npp2<- lm(npp~wp, data=cee16)
+summary(lm.stems.npp2)
+
 stems.npp.plot2 <- ggplot(cee16, aes(x=stems, y=npp, color = trt)) + 
   xlab(expression(paste("# of Stems (0.1 m"^"2",")"))) + ylab(expression(NPP~(g~m^-2))) +
   geom_point() + 
