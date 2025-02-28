@@ -16,6 +16,7 @@ setwd(dirname(current_path))
 # barplot 
 
 # Load file 
+ppt<-read.csv("C://Users/mavolio2/Dropbox//Konza Research/CEE_Part2/Precipitation/Manhattan_Climate_Daily1900-2012.csv")
 ppt<-read.csv("./../../CEE_Part2/Precipitation/Manhattan_Climate_Daily1900-2012.csv")
 head(ppt)
 
@@ -37,6 +38,21 @@ mean_ppt <- mean(ppt_april_august_total$Precip)
 sd_ppt <- sd(ppt_april_august_total$Precip)
 
 cee_ppt <- read.csv('./../../CEE_Part2/Precipitation/CEE_ppt_2010_2018_v2.csv')
+cee_ppt <- read.csv('C://Users/mavolio2/Dropbox//Konza Research//CEE_Part2/Precipitation/CEE_ppt_2010_2018_v3.csv')
+
+cee_ppt2<-cee_ppt %>% 
+  select(Yr, C, D) %>% 
+  pivot_longer(C:D, names_to='Trt', values_to = 'ppt') %>%
+  mutate(dnorm=dnorm(ppt, mean=mean_ppt, sd=sd_ppt)) %>% 
+  filter(Yr<2017) %>% 
+  mutate(drop=case_when(
+    Yr==2012&Trt=='D' ~1,
+    Yr==2013&Trt=='D'~ 1,
+    Yr==2016&Trt=='D'~1,
+    .default = 0
+  )) %>% 
+  filter(drop==0)
+
 
 #--------------
 # PDF figure for figure 1 -------
@@ -93,44 +109,46 @@ plot(merge.y.toy.ordered$toy.df,merge.y.toy.ordered$y,type='l',
 text(190,0.002,'5%',cex=1.5,col='red')
 text(750,0.002,'95%',cex=1.5,col='blue')
 # text(300,0.002,'10%',cex=1.5,col='red')
-abline(v=quantile_.05,add=TRUE,col='red',add=TRUE,lwd=5)
-abline(v=quantile_.95 ,add=TRUE,col='blue',add=TRUE,lwd=5)
+abline(v=quantile_.05,add=TRUE,col='red',add=TRUE,lwd=3)
+abline(v=quantile_.95 ,add=TRUE,col='blue',add=TRUE,lwd=3)
 #abline(v=252,add=TRUE,col='red',add=TRUE,lwd=3,lty=2)
 #abline(v=427,add=TRUE,col='black',add=TRUE,lwd=2,lty='dotted')
 #points(297.1,dnorm.2010,col='tan1',pch=21,cex=2.1,add=TRUE)
 #points(236.3,dnorm.2011,col='tan1',pch=19,cex=2.1)
 
 #drought years
-points(297.1,dnorm.2010,col='black',bg='red',pch=21,cex=3)
+points(297.1,dnorm.2010,col='black',bg='red',pch=21,cex=2)
 text(345,dnorm.2010,'2010',cex=0.75)
-points(236.3,dnorm.2011,col='black',bg='red',pch=21,cex=3)
+points(236.3,dnorm.2011,col='black',bg='red',pch=21,cex=2)
 text(280,dnorm.2011,'2011',cex=0.75)
-points(262.2,dnorm.2014,col='black',bg='red',pch=21,cex=3)
+points(262.2,dnorm.2014,col='black',bg='red',pch=21,cex=2)
 text(305,dnorm.2014,'2014',cex=0.75)
-points(240.9,0.00045,col='black',bg='red',pch=21,cex=3) #offset a little
+points(240.9,0.00045,col='black',bg='red',pch=21,cex=2) #offset a little
 text(285,0.00045,'2015',cex=0.75)
 cee_ppt
 #controls during drought years
-points(594.0,dnorm.2010.c,col='black',bg='blue',pch=21,cex=3)
+points(594.0,dnorm.2010.c,col='black',bg='blue',pch=21,cex=2)
 text(550,dnorm.2010.c,'2010',cex=0.75)
-points(607.3,dnorm.2011.c,col='black',bg='blue',pch=21,cex=3)
+points(607.3,dnorm.2011.c,col='black',bg='blue',pch=21,cex=2)
 text(565,0.002,'2011',cex=0.75)
-points(448.7,dnorm.2014.c,col='black',bg='blue',pch=21,cex=3)
+points(448.7,dnorm.2014.c,col='black',bg='blue',pch=21,cex=2)
 text(405,dnorm.2014.c,'2014',cex=0.75)
-points(653.3,dnorm.2015.c,col='black',bg='blue',pch=21,cex=3)
+points(653.3,dnorm.2015.c,col='black',bg='blue',pch=21,cex=2)
 text(610,dnorm.2015.c,'2015',cex=0.75)
 
 #recovery years
-points(626.5,dnorm.2012,col='black',bg='blue',pch=21,cex=3)
+points(626.5,dnorm.2012,col='black',bg='blue',pch=21,cex=2)
 text(585,0.0019,'2012',cex=0.75)
-points(552.2,dnorm.2013,col='black',bg='blue',pch=21,cex=3)
+points(552.2,dnorm.2013,col='black',bg='blue',pch=21,cex=2)
 text(595,dnorm.2013,'2013',cex=0.75)
-points(710.3,dnorm.2016,col='black',bg='blue',pch=21,cex=3)
+points(710.3,dnorm.2016,col='black',bg='blue',pch=21,cex=2)
 text(665,dnorm.2016,'2016',cex=0.75)
-points(449.3,0.0022,col='black',bg='blue',pch=21,cex=3) #essentially same as 2014 control, so offset a little
-text(408,0.00225,'2017',cex=0.75)
+#points(449.3,0.0022,col='black',bg='blue',pch=21,cex=3) #essentially same as 2014 control, so offset a little
+#text(408,0.00225,'2017',cex=0.75)
 # legend(370, 0.0008, legend=c("Drought","Control", "Recovery"),         #alpha legend: 0.015, 150
 #        col=c("red", "blue","grey"), lty=1.25,lwd=5,cex=1.25,box.lty=0)
+
+
 
 dev.off()
 
