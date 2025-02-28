@@ -3,6 +3,11 @@ library(lme4)
 library(lmerTest)
 library(emmeans)
 library(car)
+library(magick)
+library(jpeg)
+library(gridExtra)
+library(ggrepel)
+
 
 
 setwd("C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//ANPP//")
@@ -102,17 +107,66 @@ tottoplot<-trtave %>%
 #   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
 #   scale_color_manual(name="Treatment", labels=c("C->C", "C->D", "D->C", "D->D"), values=c("blue", "orange", "lightblue", "red"))+
 #   facet_wrap(~type, scales="free")
-ggplot(data=tottoplot, aes(x=year, y=mean, color=drt, label=label))+
+
+
+# Making Figure 1 ---------------------------------------------------------
+d<-ggplot(data=tottoplot, aes(x=year, y=mean, color=drt, label=label))+
   annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
   geom_point(size=3)+
   geom_line()+
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.075)+
   xlab("Year")+
   ylab(expression("Total ANPP (g m"*{}^{-2}*")"))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "top")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
   geom_text(color="black", nudge_x = 0.15, nudge_y = 20)
 
+Treatments<-c('C-C', 'D-C', 'C-D', 'D-D')
+Y2010<-c(1, 0, 1, 0)
+Y2011<-c(1, 0, 1, 0)
+Y2012<-c(1, 1, 1, 1)
+Y2013<-c(1, 1, 1, 1)
+Y2014<-c(1, 1, 0, 0)
+Y2015<-c(1, 1, 0, 0)
+Y2016<-c(1, 1, 1, 1)
+
+treatfig<-data.frame(Treatments, Y2010, Y2011, Y2012, Y2013, Y2014, Y2015, Y2016) %>% 
+  pivot_longer(Y2010:Y2016, names_to = 'year', values_to = 'drttrt') %>% 
+  separate(year, into = c('prefix', 'Year'), sep=1)
+
+
+b<-ggplot(data=treatfig, aes(x=Year, y=Treatments, fill=as.factor(drttrt)))+
+  geom_tile()+
+  scale_y_discrete(limits=c('D-D', 'D-C', 'C-D', 'C-C'))+
+  scale_fill_manual(values=c('red', 'blue'))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),legend.position = 'none')+
+  ylab("")
+b
+
+#make ppt bell curve figure in ppt.r code - get cee_ppt2, and mean_ppt and sd_ppt from this file and quantiles
+c<-ggplot(data=cee_ppt2, aes(x=ppt, y=dnorm, color=Trt, label=Yr))+
+  scale_x_continuous(limits = c(0,1000))+
+  scale_color_manual(values=c('blue', 'red'))+
+  geom_vline(xintercept = quantile_.05, color='red')+
+  geom_vline(xintercept = quantile_.95, color='blue')+
+  annotate(geom = 'text', label='5%', x = 200, y=0.0015, color='red')+
+  annotate(geom = 'text', label= '95%', x=875, y=0.0014, color='blue')+
+  geom_point(size=4)+
+  stat_function(fun = dnorm, n = 101, args = list(mean = mean_ppt, sd = sd_ppt), color='black')+
+  geom_text_repel(color='black', nudge_x = 50)+
+  ylab('Probability density')+
+  xlab('Growing season precipitation (mm)')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none')
+
+fig1<-grid.arrange(b, 
+          arrangeGrob(c, d, ncol=2),
+          nrow=2, heights=c(0.75, 2.25))
+
+pfig1 <- as_ggplot(fig1) +                                # transform to a ggplot
+  draw_plot_label(label = c("B)", "C)", "D)"), size = 12,
+                  x = c(0, 0, 0.5), y = c(1, 0.75, 0.75))
+pfig1
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig1_Feb25.jpeg', pfig1, width=8, height=5, units='in')
 
 
 # ##looking at 2014 2015 difference
