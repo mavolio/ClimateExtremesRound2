@@ -19,6 +19,8 @@ NPP<-ANPP %>%
   left_join(BNPP) %>% 
   mutate(npp=anpp+bnpp)
 
+write.csv(NPP, 'C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Analyses in SAS//NPP_2015_2016.csv', row.names=F)
+
 #there all look normal to me, I am not going to log transform
 ggplot(data=NPP, aes(x=log(anpp)))+
   geom_histogram()
