@@ -69,15 +69,16 @@ plotave<-dat%>%
   select(Plot, year, drt1,drt2, drt, type, biomass, halfblock, block)%>%
   filter(drt2!=".")
 
-####going stats on ANPP
-mtot<-lmer(biomass~drt*as.factor(year)+(1|block/Plot)
-           , data=subset(plotave, type=="Total"))
-anova(mtot) #use this ddf for repeated measures.
 
-#doing contrasts 
-emmeans(mtot, pairwise~drt|year, adjust="tukey")
+####Doing stats on ANPP. This is now being done in SAS, As I think they are better able to handle the complex experimental design
+# mtot<-lmer(biomass~drt*as.factor(year)+(1|block/Plot)
+#            , data=subset(plotave, type=="Total"))
+# anova(mtot) #use this ddf for repeated measures.
+# 
+# #doing contrasts 
+# emmeans(mtot, pairwise~drt|year, adjust="tukey")
 
-
+#getting averages to make plot
 trtave<-plotave%>%
   group_by(year, drt, type)%>%
   summarize(mean=mean(biomass), sd=sd(biomass), n=length(biomass))%>%
@@ -85,7 +86,7 @@ trtave<-plotave%>%
 
 tottoplot<-trtave %>% 
   filter(type=="Total") %>% 
-  mutate(label=ifelse(year==2015&drt=="C-C", "A", ifelse(year==2015&drt=="PD-C", "AB", ifelse(year==2015&drt=="C-D", "BC", ifelse(year==2015&drt=="PD-D", "C", "")))))
+  mutate(label=ifelse(year==2015&drt=="C-C", "A", ifelse(year==2015&drt=="PD-C", "A", ifelse(year==2015&drt=="C-D"|year==2015&drt=='PD-D', "B", ifelse(year==2013&drt=='PD-C', "A", ifelse(year==2013&drt=='PD-D', 'B', ifelse(year==2013&drt=='C-C'|year==2013&drt=='C-D', 'AB', "")))))))
 
 
 # Making Figure 1 ---------------------------------------------------------
@@ -98,8 +99,9 @@ d<-ggplot(data=tottoplot, aes(x=year, y=mean, color=drt, label=label))+
   ylab(expression("Total ANPP (g m"*{}^{-2}*")"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
-  geom_text(color="black", nudge_x = 0.15, nudge_y = 20)
+  geom_text(color="black", nudge_x = 0.15, nudge_y = -10, size=3)
 
+d
 Treatments<-c('C-C', 'D-C', 'C-D', 'D-D')
 Y2010<-c(1, 0, 1, 0)
 Y2011<-c(1, 0, 1, 0)
@@ -136,17 +138,18 @@ c<-ggplot(data=cee_ppt2, aes(x=ppt, y=dnorm, color=Trt, label=Yr))+
   ylab('Probability density')+
   xlab('Growing season precipitation (mm)')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none')
+c
 
-fig1<-grid.arrange(b, 
+fig1<-grid.arrange(b,
                    arrangeGrob(c, d, ncol=2),
-                   nrow=2, heights=c(0.75, 2.25))
+                   nrow=2, heights=c(1, 3))
 
 pfig1 <- as_ggplot(fig1) +                                # transform to a ggplot
   draw_plot_label(label = c("B)", "C)", "D)"), size = 12,
                   x = c(0, 0, 0.5), y = c(1, 0.75, 0.75))
 pfig1
 #jpeg
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig1_Feb25.jpeg', pfig1, width=8, height=5, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig1_March25.jpeg', pfig1, width=8, height=5, units='in')
 #pdf
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig1_Feb25.pdf', pfig1, width=8, height=5, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig1_March25.pdf', pfig1, width=8, height=5, units='in')
 
