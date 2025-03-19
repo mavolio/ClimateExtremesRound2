@@ -69,6 +69,10 @@ plotave<-dat%>%
   select(Plot, year, drt1,drt2, drt, type, biomass, halfblock, block)%>%
   filter(drt2!=".")
 
+write.csv(plotave, 'C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Analyses in SAS//ANPP_2013_2016forSAS.csv', row.names=F)
+
+write.csv(plotave, 'C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//ANPP//ANPP_2013_2016plotaverages.csv', row.names=F)
+
 
 ####Doing stats on ANPP. This is now being done in SAS, As I think they are better able to handle the complex experimental design
 # mtot<-lmer(biomass~drt*as.factor(year)+(1|block/Plot)
