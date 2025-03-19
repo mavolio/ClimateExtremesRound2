@@ -39,7 +39,7 @@ stemsfig<-ggplot(data=mstems, aes(x=drt, y=mean, fill=drt))+
   xlab("Treatment")+
   ylab("Number of A. gerardii Stems")+
   scale_x_discrete(limits=c("C-C", "PD-C", "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"))
-
+stemsfig
 
 #water potential
 wp2016<-wp%>%

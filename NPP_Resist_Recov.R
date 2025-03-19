@@ -123,6 +123,8 @@ baci.tot.1<-anpp.2%>%
 baci.tot.2<-baci.tot.1%>%
   pivot_longer(cols= After:Recovery, names_to = "variable", values_to = "val")
 
+write.csv(baci.tot.2, 'ResitResil.csv', row.names =F )
+
 #models
 ggplot(data=baci.tot.2, aes(x=drt, y=val))+
   geom_boxplot()+

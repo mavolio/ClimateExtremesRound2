@@ -10,15 +10,14 @@ stems<-read.csv("Stem Data//All_live_springStems_11-18.csv")%>%
   left_join(trt)%>%
   filter(drt!=".") %>% 
   mutate(TotGrass=Andro+Sorg+Grass,
-       TotForb=Solidago+Forbs,
-       Total=Andro+Sorg+Grass+Solidago+Forbs+Woody,
-       Totnowood=Andro+Sorg+Grass+Solidago+Forbs,
-       Other=Sorg+Grass+Solidago+Forbs+Woody,
-       Othernowood=Sorg+Grass+Solidago+Forbs)%>%
-  filter(Total!=0)%>%
-  mutate(drop=ifelse(Plot==210&year==2015|Plot==102&year==2014, 1, 0))%>%
+       TotForb=Solidago+Forb,
+       Total=Andro+Sorg+Grass+Solidago+Forb+Wood,
+       Totnowood=Andro+Sorg+Grass+Solidago+Forb,
+       Other=Sorg+Grass+Solidago+Forb+Wood,
+       Othernowood=Sorg+Grass+Solidago+Forb)%>%
+  mutate(drop=ifelse(Plot==210&Year==2015|Plot==102&Year==2014, 1, 0))%>%
   filter(drop!=1) %>% 
-  filter(year>2012&year<2017)
+  filter(Year>2012&Year<2017)
 
 
 
