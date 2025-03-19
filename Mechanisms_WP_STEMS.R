@@ -70,7 +70,7 @@ mresist<-lm(ANPP.Resist~wp2015+AndroResistStems+AndroResistBiomass+RichResist, d
 summary(mresist)
 calc.relimp(mresist)
 
-mrecov<-lm(ANPP.Resist~wp2016+AndroRecoverStems+AndroRecoverBiomass+RichRecover, data=MechData)
+mrecov<-lm(ANPP.Recov~wp2016+AndroRecoverStems+AndroRecoverBiomass+RichRecover, data=MechData)
 summary(mrecov)
 calc.relimp(mrecov)
 
