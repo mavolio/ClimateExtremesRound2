@@ -3,27 +3,28 @@ library(lme4)
 library(lmerTest)
 library(emmeans)
 library(car)
+#library(relaimpo)
+library(ggpubr)
 
 theme_set(theme_bw(12))
-
-
-
+#read in data
 setwd("C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//")
 
 #read in data
-ANPP<-read.csv("ANPP//ANPP_2012-2017_plotaverages.csv") %>% 
+ANPP<-read.csv("ANPP//ANPP_2013_2016plotaverages.csv") %>% 
+  filter(type=='Total') %>% 
   rename(plot=Plot, anpp=biomass) %>%
   select(-type)
 
 BNPP<-read.csv("BNPP//CEE_IGCs_2015-16_R.csv") %>% 
   select(year, plot, bnpp)
+
 trt<-read.csv("ANPP//CEE_treatments_2023.csv")
 
 NPP<-ANPP %>% 
   filter(year %in% c(2015, 2016)) %>% 
   left_join(BNPP) %>% 
   mutate(npp=anpp+bnpp)
-
 
 Androbiomasschange<-read.csv('ANPP\\ANPP_2012-2017_combinedrawdata.csv') %>% 
   mutate(drop=ifelse(Plot==210&year==2015|Plot==102&year==2014, 1, 0))%>%
@@ -60,32 +61,49 @@ wp<-read.csv('water_potential\\CEE_WP_allyears.csv') %>%
 spdat<-read.csv("Sppcomp//Entered//spcomp_cee_2010_2017.csv")%>%
   filter(year==2013|year==2015|year==2016)
 
+rich<-community_structure(spdat, time.var='year', abundance.var = 'cov1', replicate.var = 'plot') %>% 
+  select(-Evar) %>% 
+  pivot_wider(names_from = year, values_from = richness, names_prefix = 'y') %>%
+  mutate(RichRecover=y2016-y2015, 
+         RichResist=y2015-y2013) %>% 
+  select(-y2013, -y2015, -y2016)
 
-###NPP Stats
-#stats
-m2015.anpp<-lmer(anpp~drt+(1|block), data=subset(NPP, year==2015))
-anova(m2015.anpp)
-emmeans(m2015.anpp, pairwise~drt, adjust="holm")
 
-m2015.bnpp<-lmer(bnpp~drt+(1|block), data=subset(NPP, year==2015))
-anova(m2015.bnpp)
-emmeans(m2015.bnpp, pairwise~drt, adjust="holm")
+#calculate recovery and resistence
+anpp.2<-ANPP%>%
+  mutate(period=ifelse(year==2013, "Before", ifelse(year==2015, "During", ifelse(year == 2016, "After", "drop"))))%>%
+  filter(period != "drop")
 
-m2015.npp<-lmer(npp~drt+(1|block), data=subset(NPP, year==2015))
-anova(m2015.npp)
-emmeans(m2015.npp, pairwise~drt, adjust="holm")
+baci.tot.1<-anpp.2%>%
+  select(-year) %>% 
+  pivot_wider(names_from = period, values_from = anpp)%>%
+  mutate(Resistance=(During-Before)/Before,
+         Resilience=(After-Before)/Before,
+         Recovery=(After-During)/During)
 
-m2016.anpp<-lmer(anpp~drt+(1|block), data=subset(NPP, year==2016))
-anova(m2016.anpp)
-emmeans(m2016.anpp, pairwise~drt, adjust="holm")
+baci.tot.2<-baci.tot.1%>%
+  pivot_longer(cols= After:Recovery, names_to = "variable", values_to = "val")
 
-m2016.bnpp<-lmer(bnpp~drt+(1|block), data=subset(NPP, year==2016))
-anova(m2016.bnpp)
-emmeans(m2016.bnpp, pairwise~drt, adjust="holm")
+#write NPP and resist_recovery for SAS analyses
+#write.csv(baci.tot.2, 'C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Analyses in SAS//ResitResil.csv', row.names =F )
 
-m2016.npp<-lmer(npp~drt+(1|block), data=subset(NPP, year==2016))
-anova(m2016.npp)
-emmeans(m2016.npp, pairwise~drt, adjust="holm")
+#write.csv(NPP, 'C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Analyses in SAS//NPP_2015_2016.csv', row.names=F)
+
+#Mechanisms 
+MechData<-baci.tot.1 %>% 
+  left_join(androstems) %>% 
+  left_join(Androbiomasschange) %>% 
+  left_join(wp) %>% 
+  left_join(rich)
+
+mresist<-lm(Resistance~wp2015+AndroResistStems+AndroResistBiomass+RichResist, data=MechData)
+summary(mresist)
+calc.relimp(mresist)
+
+mrecov<-lm(Recovery~wp2016+AndroRecoverStems+AndroRecoverBiomass+RichRecover, data=MechData)
+summary(mrecov)
+calc.relimp(mrecov)
+
 
 #NPP Figures
 NPPmeans<-NPP %>% 
@@ -106,19 +124,21 @@ npp2015<-ggplot(subset(NPPmeans, year==2015), aes(x=drt, fill = drt)) +
   scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
   xlab("")+
   theme_bw(12) +
-  theme(panel.grid = element_blank(), legend.position = "none")+
+  theme(panel.grid = element_blank())+
   annotate("text", x=1, y=870, label="A", size=4)+
-  annotate("text", x=2, y=850, label="AB", size=4)+
-  annotate("text", x=3, y=640, label="BC", size=4)+
+  annotate("text", x=2, y=850, label="A", size=4)+
+  annotate("text", x=3, y=640, label="B", size=4)+
   annotate("text", x=4, y=430, label="C", size=4)+
   annotate("text", x=1, y=-330, label="A", size=4)+
-  annotate("text", x=2, y=-300, label="B", size=4)+
-  annotate("text", x=3, y=-300, label="B", size=4)+
+  annotate("text", x=2, y=-270, label="B", size=4)+
+  annotate("text", x=3, y=-270, label="B", size=4)+
   annotate("text", x=4, y=-150, label="C", size=4)+
   annotate("text", x=1, y=50, label="A", size=4, fontface=2)+
   annotate("text", x=2, y=50, label="A", size=4, fontface=2)+
   annotate("text", x=3, y=50, label="B", size=4, fontface=2)+
-  annotate("text", x=4, y=50, label="C", size=4, fontface=2)
+  annotate("text", x=4, y=50, label="C", size=4, fontface=2)+
+  labs(fill="Drought Treatment")
+npp2015
 
 #2016 plot
 
@@ -134,10 +154,11 @@ npp2016<-ggplot(subset(NPPmeans, year==2016), aes(x=drt, fill = drt)) +
   scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
   xlab("")+
   theme_bw(12) +
-  theme(panel.grid = element_blank(), legend.position = "none")
+  theme(panel.grid = element_blank())+
+  labs(fill="Drought Treatment")
+npp2016
 
-
-###Resistance and Recovery BACI design
+###Resistance and Recovery BACI design figures
 baci.tot.3<-baci.tot.2%>%
   filter(variable=="Resistance"|variable=="Recovery") %>% 
   group_by(drt, variable)%>%
@@ -154,7 +175,12 @@ anpp.resist<-ggplot(data=subset(baci.tot.3, variable == "Resistance"), aes(x=drt
   scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
   xlab("")+
   theme_bw(12)+
-  theme(panel.grid = element_blank(), legend.position = "none")
+  theme(panel.grid = element_blank(), legend.position = "none")+
+  annotate("text", x=1, y=0.45, label="A", size=4)+
+  annotate("text", x=2, y=0.35, label="AB", size=4)+
+  annotate("text", x=3, y=0.2, label="BC", size=4)+
+  annotate("text", x=4, y=-0.45, label="C", size=4)
+anpp.resist
 
 anpp.recov<-ggplot(data=subset(baci.tot.3, variable == "Recovery"), aes(x=drt, y = mean, fill=drt))+
   geom_col(aes(y=mean), width = .5, color = 'black')+ 
@@ -166,7 +192,64 @@ anpp.recov<-ggplot(data=subset(baci.tot.3, variable == "Recovery"), aes(x=drt, y
   theme_bw(12)+
   theme(panel.grid = element_blank(), legend.position = "none")+
   annotate("text", x=1, y=0.25, label="A", size=4)+
-  annotate("text", x=2, y=0.4, label="A", size=4)+
-  annotate("text", x=3, y=0.8, label="AB", size=4)+
-  annotate("text", x=4, y=1.4, label="B", size=4)
+  annotate("text", x=2, y=0.4, label="AB", size=4)+
+  annotate("text", x=3, y=0.8, label="B", size=4)+
+  annotate("text", x=4, y=1.4, label="C", size=4)
+anpp.recov
 
+#regression figures
+wp2015<-
+  ggplot(data=MechData, aes(x=wp2015, y=Resistance, color=drt))+
+  geom_point(size=3)+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  ylab('ANPP Resistance')+
+  xlab('Water Potential')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  geom_smooth( method='lm', se=T, color="black")+
+  labs(color="")
+wp2015
+
+
+wp2016<-
+  ggplot(data=MechData, aes(x=wp2016, y=Recovery, color=drt))+
+  geom_point(size=3)+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  ylab('ANPP Resistance')+
+  xlab('Water Potential')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  geom_smooth( method='lm', se=T, color="black", linetype=3)
+wp2016
+
+AndrobiomassResist<-
+  ggplot(data=MechData, aes(x=AndroResistBiomass, y=Resistance, color=drt))+
+  geom_point(size=3)+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  ylab('ANPP Resistance')+
+  xlab('Change in A. gerardii Biomass')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  geom_smooth( method='lm', se=T, color="black")
+AndrobiomassResist
+
+AndrobiomassRecover<-
+  ggplot(data=MechData, aes(x=AndroRecoverBiomass , y=Recovery, color=drt))+
+  geom_point(size=3)+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  ylab('ANPP Recovery')+
+  xlab('Change in A. gerardii Biomass')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  geom_smooth( method='lm', se=T, color="black")+
+AndrobiomassRecover
+
+Fig2<-ggarrange(npp2015, anpp.resist, wp2015,AndrobiomassResist, nrow=2, ncol=2, common.legend = T, legend='bottom')+
+  draw_plot_label(label = c("A)", "C)", "B)", 'D)'), size = 12,
+                  x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
+Fig2
+
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig2_March25.jpeg', Fig2, width=8, height=8, units='in')
+
+Fig3<-ggarrange(npp2016, anpp.recov, wp2016,AndrobiomassRecover, nrow=2, ncol=2, common.legend = T, legend='bottom')+
+  draw_plot_label(label = c("A)", "C)", "B)", 'D)'), size = 12,
+                  x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
+Fig3
+
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig3_March25.jpeg', Fig3, width=8, height=8, units='in')
