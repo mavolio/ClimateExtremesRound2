@@ -120,7 +120,7 @@ npp2015<-ggplot(subset(NPPmeans, year==2015), aes(x=drt, fill = drt)) +
   geom_hline(aes(yintercept = 0)) +
   scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C-C", 'D-C', 'C-D', 'D-D'))+
   scale_y_continuous(breaks=seq(-450, 900, 200))+
-  ylab(expression(BNPP~(g~m^-2)~~~~~~~~~~~~~~~~~ANPP~(g~m^-2)))+
+  ylab(expression(BNPP~(g~m^-2)~~~~~~~~~~~~~~~ANPP~(g~m^-2)))+
   scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
   xlab("")+
   theme_bw(12) +
@@ -150,7 +150,7 @@ npp2016<-ggplot(subset(NPPmeans, year==2016), aes(x=drt, fill = drt)) +
   geom_hline(aes(yintercept = 0)) +
   scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C-C", 'D-C', 'C-D', 'D-D'))+
   scale_y_continuous(breaks=seq(-450, 900, 200))+
-  ylab(expression(BNPP~(g~m^-2)~~~~~~~~~~~~~~~~~ANPP~(g~m^-2)))+
+  ylab(expression(BNPP~(g~m^-2)~~~~~~~~~~~~~~~ANPP~(g~m^-2)))+
   scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
   xlab("")+
   theme_bw(12) +
@@ -214,7 +214,7 @@ wp2016<-
   ggplot(data=MechData, aes(x=wp2016, y=Recovery, color=drt))+
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
-  ylab('ANPP Resistance')+
+  ylab('ANPP Recovery')+
   xlab('Water Potential')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   geom_smooth( method='lm', se=T, color="black", linetype=3)
