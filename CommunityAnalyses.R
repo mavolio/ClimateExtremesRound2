@@ -5,7 +5,9 @@ library(tidyverse)
 library(ggrepel)
 library(gridExtra)
 library(codyn)
-
+library(ggh4x) #need to get facet colors
+library(ggpubr)
+library(cowplot)
 theme_set(theme_bw(12))
 
 #set wd
@@ -29,26 +31,29 @@ totcov<-spdat2%>%
 reldat<-spdat2%>%
   left_join(totcov)%>%
   mutate(relcov=cov1/total)%>%
-  select(-cov1, -total)
+  select(-cov1, -total) %>% 
+  filter(2012<year&year<2017)
 
 ggplot(data=subset(reldat, spnum2=="s2"), aes(x=year, y=relcov))+
   geom_point()+
   facet_wrap(~drt)
 
-# cattraits<-read.csv(paste(my.wd, "/pplots/traits_2021.csv", sep=""))%>%
-#   filter(Genus!="")%>%
-#   select(Genus, Species, Annual.Peren.Bi, Forb.grass.shrub, C3.C4, N.fixer..Y.N...)%>%
-#   mutate(genus_species=paste(tolower(Genus), Species, sep="_"))%>%
-#   rename(lifespan=Annual.Peren.Bi,
-#          growthform=Forb.grass.shrub,
-#          photopath=C3.C4,
-#          Nfix=N.fixer..Y.N...)%>%
-#   select(-Genus, -Species)
+cattraits<-read.csv(paste(my.wd, "/pplots/traits_2021.csv", sep=""))%>%
+  filter(Genus!="")%>%
+  select(Species.Number, Genus, Species, Annual.Peren.Bi, Forb.grass.shrub, C3.C4, N.fixer..Y.N...)%>%
+  mutate(genus_species=paste(tolower(Genus), Species, sep="_"))%>%
+  rename(lifespan=Annual.Peren.Bi,
+         growthform=Forb.grass.shrub,
+         photopath=C3.C4,
+         Nfix=N.fixer..Y.N...)%>%
+  mutate(spnum2=paste("s",Species.Number, sep="")) %>% 
+  select(-Genus, -Species) %>% 
+  mutate(spnum2=ifelse(spnum2=='s533', 's127', spnum2))
 
 #get average cover of each species in a treatment for each year of the experiment (average over the plots)
-# ave<-spdat2%>%
-#   group_by(year, drt, spnum2)%>%
-#   summarize(mabund=mean(cov1))
+ave<-spdat2%>%
+  group_by(year, drt, spnum2)%>%
+  summarize(mabund=mean(cov1))
 
 # subyears<-reldat%>%
 #   filter(year==2016)
@@ -69,50 +74,48 @@ mds
 scores<-plots%>%
   bind_cols(as.data.frame(mds$points))
 
-#%>%
-  mutate(label=ifelse(year==2012|year==2015, as.character(year),""))%>%
-  group_by(year, drt, label)
-
-
-#%>%
-  summarize(NMDS1=mean(MDS1), NMDS2=mean(MDS2), sd1=sd(MDS1), sd2=mean(MDS2))%>%
-  mutate(se1=sd1/sqrt(8), se2=sd2/sqrt(8))
-
-#make figure with first and last year labeled and path between points connected
-NMDS<-
-  ggplot(data=scores, aes(x=MDS1, y=MDS2, color=drt))+
+ggplot(data=scores, aes(x=MDS1, y=MDS2, color=drt))+
   geom_point(size=3)+
   scale_color_manual(name="Treatment", values = c("blue", "orange", "lightblue", "red"), labels=c("C->C", "C->D", "D->C", "D->D"))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   ylab("NMDS2")+
   xlab("NMDS1")+
-  facet_wrap(~year)#+
-  annotate(x=-0.35, y = -0.4, "text", label= "Stress = 0.19")
+  facet_wrap(~year)+
+  stat_ellipse(size=1, aes(color=drt))
   
   
-
-
-#make figure with error bars fo year subsets
-  ggplot(data=scores, aes(x=NMDS1, y=NMDS2, color=drt, label=label))+
-    geom_point(size=3)+
-    geom_text_repel(show.legend = F)+
-    geom_errorbar(aes(ymin=NMDS2-se2, ymax=NMDS2+se2))+
-    geom_errorbarh(aes(xmin=NMDS1-se1, xmax=NMDS1+se1))+
-  scale_color_manual(name="Treatment", values = c("blue", "orange", "lightblue", "red"), labels=c("C->C", "C->D", "D->C", "D->D"))+
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-    ylab("NMDS2")+
-    xlab("NMDS1")
-  
-  #make figure with error bars fo year subsets
-  ggplot(data=scores, aes(x=MDS1, y=MDS2, color=drt))+
+ggplot(data=scores, aes(x=MDS1, y=MDS2, color=drt, shape=as.factor(year)))+
     geom_point(size=3)+
     scale_color_manual(name="Treatment", values = c("blue", "orange", "lightblue", "red"), labels=c("C->C", "C->D", "D->C", "D->D"))+
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
     ylab("NMDS2")+
-    xlab("NMDS1")
+    xlab("NMDS1")+
+    #stat_ellipse(size=1, aes(color=drt))+
+  annotate(x=-0.8, y = 1, "text", label= "Stress = 0.19")
   
+  
+  #make figure with first and last year labeled and path between points connected
+avescores<-scores%>%
+   group_by(year, drt)%>%
+  summarize(NMDS1=mean(MDS1), NMDS2=mean(MDS2), sd1=sd(MDS1), sd2=mean(MDS2))%>%
+    mutate(se1=sd1/sqrt(8), se2=sd2/sqrt(8))
 
-#permanova on for each year
+#make figure with error bars fo year subsets
+nmdsfig<-
+ggplot(data=avescores, aes(x=NMDS1, y=NMDS2, color=drt, label=year))+
+    geom_point(size=5)+
+    geom_text(hjust=0, vjust=-2)+
+    geom_path()+
+    geom_errorbar(aes(ymin=NMDS2-se2, ymax=NMDS2+se2))+
+    geom_errorbarh(aes(xmin=NMDS1-se1, xmax=NMDS1+se1))+
+  scale_color_manual(name="Treatment", values = c("blue", "orange", "dodgerblue", "red"), labels=c("C->C", "C->D", "D->C", "D->D"))+
+    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = 'none')+
+    ylab("NMDS2")+
+    xlab("NMDS1")+
+    annotate(x=-0.5, y = 0.2, "text", label= "Stress = 0.19")
+nmdsfig  
+
+#permanova and permdisp on for each year
 #run a for loop
 permout=data.frame()
 yrlist=unique(reldat$year)
@@ -123,22 +126,25 @@ for (i in 1:length(yrlist)){
     filter(year==yrlist[i])%>%
     spread(spnum2, relcov, fill=0)
   
-  perm<-adonis(sub[5:length(sub)]~sub$drt)
+  perm<-adonis2(sub[5:length(sub)]~sub$drt)
   
-  out<-data.frame(
+  dist<-vegdist(sub[5:length(sub)], method='bray')  
+  bd<-betadisper(dist, sub$drt)
+  pbd<-permutest(bd)
+  
+    out<-data.frame(
     year=yrlist[i],
-    f=perm$aov.tab$F.Model[1],
-    p=perm$aov.tab$'Pr(>F)'[1]
+    permf=perm$F[1],
+    permp=perm$'Pr(>F)'[1],
+    betaf=pbd$tab$F[1],
+    betap=pbd$tab$`Pr(>F)`[1]
   )
   permout<-rbind(permout, out)
 }
 
 padj<-permout%>%
-  mutate(padj=p.adjust(p, method = "BH"))
-
-sub2013<-spdat2%>%
-  filter(year==2017)%>%
-  spread(spnum2, cov1, fill=0)
+  mutate(perm.padj=p.adjust(permp, method = "BH"),
+         beta.padj=p.adjust(betap, method = "BH"))
 
 
 ###using coydn to track community changes thorugh time
@@ -152,8 +158,7 @@ compdiff<-ggplot(data=mult_diff, aes(x=year, y=composition_diff, color=drt2))+
   xlab("Year")+
   ylab("Compositional Difference")+
   scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none")+
-  annotate(x=2012, y=0.30, "text", label="*", size=8)+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   annotate(x=2014, y=0.23, "text", label="*", size=8)+
   annotate(x=2015, y=0.25, "text", label="*", size=8)+
   annotate(x=2016, y=0.36, "text", label="*", size=8)
@@ -182,7 +187,7 @@ rank<-ggplot(data=rankdiffmean, aes(x=year, y=mean, color=drt2))+
 
 ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\RAC_diff.jpeg", rank, height=200, width=200, units="mm", dpi=300)
 
-mult_chg<-multivariate_change(df=reldat, time.var="year", species.var='spnum2', abundance.var="relcov", replicate.var="plot", treatment.var = "drt", reference.time = 2012)
+mult_chg<-multivariate_change(df=reldat, time.var="year", species.var='spnum2', abundance.var="relcov", replicate.var="plot", treatment.var = "drt", reference.time = 2013)
 
 ggplot(data=mult_chg, aes(x=year2, y=composition_change, color=drt))+
   annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
@@ -210,8 +215,8 @@ ggplot(data=rankchangemean, aes(x=year2, y=mean, color=drt))+
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.1)+
   facet_wrap(~measure, scales="free")+
   scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())#+
+  #annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")
 
 
 
@@ -219,10 +224,11 @@ ggplot(data=rankchangemean, aes(x=year2, y=mean, color=drt))+
 #get average cover of each species in each treatment over all years (average over plots and years). 
 #join categorical triats and create trait categories
 racave<-ave%>%
-  group_by(treatment, genus_species)%>%
+  filter(2012<year & year < 2017) %>% 
+  group_by(year, drt, spnum2)%>%
   summarize(mabund=mean(mabund))%>%
-  mutate(rank=rank(-mabund, ties.method = "first"))%>%
-  left_join(cattraits)%>%
+  mutate(rank=rank(-mabund, ties.method = "first")) %>% 
+  left_join(cattraits) %>%
   mutate(trait_cat=ifelse(growthform=="F"&lifespan=="A", "Annual Forb",
                           ifelse(growthform=="G"&lifespan=="A", "Annual Gram.",
                                  ifelse(growthform=="G"&photopath=="C3", "C3 Gram.",
@@ -231,31 +237,53 @@ racave<-ave%>%
                                                       ifelse(growthform=='F'|growthform=="S"&Nfix=="Y", "N-Fixing Forb","UNK")))))))%>%
   separate(genus_species, into=c("genus", "species"), sep="_")%>%
   mutate(genera=toupper(substr(genus, 1, 1)),
-         sp=paste(genera, species, sep=". "))%>%
-  mutate(name=ifelse(rank<4, sp, ""))
+         sp=paste(genera, species, sep=". "))
 
-#make new labels for facet_wrap step  
-collabel<-c(
-  N1P0="Control", 
-  N1P3="P",
-  N2P0="N",
-  N2P3="N+P")
 
-#great rac figure
-rac<-
-  ggplot(data=racave, aes(x=rank, y=mabund, label=name))+
-  geom_line()+
-  geom_point(aes(color=trait_cat), size=2)+
-  scale_color_manual(name="Functional Type", values=c("forestgreen", "chartreuse3", "green", "darkblue", "lightblue", "deepskyblue"), breaks = c("C3 Gram.", "C4 Gram.", "Annual Gram.","Non-N-Fixing Forb", "N-Fixing Forb", "Annual Forb"))+
-  geom_text_repel(max.overlaps = 8, size=3)+
-  facet_wrap(~treatment, labeller = labeller(treatment=collabel))+
+ggplot(data=racave, aes(x=rank, y=mabund, label=sp, color=trait_cat))+
+  geom_point(size=2)+
+  facet_grid(drt~year)+
+  geom_text()+ 
+  scale_color_manual(name="Functional Type", values=c("forestgreen", "chartreuse3", "green", "darkblue", "lightblue", "deepskyblue"), breaks = c("C3 Gram.", "C4 Gram.", "Annual Gram.","Non-N-Fixing Forb", "N-Fixing Forb", "Annual Forb"))
+
+#top sp plot
+topsp<-ave%>%
+  filter(2012<year & year < 2017) %>% 
+  group_by(drt, spnum2)%>%
+  summarize(mabund=mean(mabund))%>%
+  mutate(rank=rank(-mabund, ties.method = "first")) %>% 
+  filter(rank<6) %>% 
+  select(drt, spnum2)
+ 
+topsptograph<-racave %>% 
+  right_join(topsp) %>% 
+  mutate(Drt=factor(drt, levels=c('C-C', 'PD-C', 'C-D', 'PD-D')))
+
+strip_cee <- strip_themed(background_x = elem_list_rect(fill = list("blue", "dodgerblue", "orange", "red")))
+labels=c('C-C'= 'C-C', 'C-D'='C-D', 'PD-C'='D-C', 'PD-D'='D-D')
+
+racs<-
+ggplot(data=topsptograph, aes(x=year, y=mabund, shape=sp, color=trait_cat))+
+  geom_point(size=3, stroke = 1.5)+
+  geom_line(size=1)+
+  facet_wrap2(~Drt,  strip=strip_cee, labeller=labeller(Drt=labels), nrow=1)+
+  scale_y_continuous(limits=c(0,100))+
+  scale_shape_manual(name='Species', values=c(1:10))+
+  scale_color_manual(name="Functional\nType", values=c("green3", "forestgreen","purple"), breaks = c("C3 Gram.", "C4 Gram.", "Non-N-Fixing Forb"), labels=c('C3 Gram.', 'C4 Gram.', 'Forb'))+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  ylab("Abundance")+
-  xlab("Rank")
+  xlab("Year")+
+  ylab("Species Cover")+
+  theme(strip.text = element_text(colour = 'white', face='bold'), legend.position = 'bottom')+
+  guides(shape = guide_legend(nrow = 4), col=guide_legend(nrow=2))
+racs
+fig2<-grid.arrange(nmdsfig, racs)
 
-#bind both figures together.
-grid.arrange(NMDS, rac, ncol=2)
+pfig2 <- as_ggplot(fig2) +                                # transform to a ggplot
+  draw_plot_label(label = c("A)", "B)"), size = 12,
+                  x = c(0, 0), y = c(1, 0.5))
+pfig2
 
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig2_May25.jpeg', pfig2, width=11, height=12, units='in')
 
 ####figure that dave wants of community and anpp in one fig - need ANPP code for this to work
 comdat<-mult_diff%>%
