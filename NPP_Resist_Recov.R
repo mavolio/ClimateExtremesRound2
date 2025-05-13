@@ -125,6 +125,14 @@ baci.tot.1<-anpp.2%>%
 baci.tot.2<-baci.tot.1%>%
   pivot_longer(cols= After:Recovery, names_to = "variable", values_to = "val")
 
+###looking into resistance recovery relationships.
+ggplot(data=baci.tot.1, aes(x=Resistance, y=Recovery))+
+  geom_point(size=5, aes(color=drt))+
+  geom_smooth(method = "lm")+
+  scale_color_manual(values=c('blue', 'orange','dodgerblue', 'red'))
+
+summary(lm(Recovery~Resistance, data=baci.tot.1))
+
 write.csv(baci.tot.2, 'ResitResil.csv', row.names =F )
 
 #models
@@ -143,11 +151,11 @@ m.recovery<-lmer(val~drt+(1|block), data=subset(baci.tot.2,
 anova(m.recovery)  
 emmeans(m.recovery, pairwise~drt, adjust = "tukey")
 
-# #we are not going to include resilience
-# m.resilience<-lmer(val~drt+(1|block/halfblock), data=subset(baci.tot.2, 
-#                                                             variable == "Resilience"))
-# anova(m.resilience)  
-# emmeans(m.resilience, pairwise~drt, adjust = "tukey")
+#we are not going to include resilience
+m.resilience<-lmer(val~drt+(1|block/halfblock), data=subset(baci.tot.2,
+                                                            variable == "Resilience"))
+anova(m.resilience)
+emmeans(m.resilience, pairwise~drt, adjust = "tukey")
 
 #graphing this
 
