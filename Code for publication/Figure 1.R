@@ -84,6 +84,33 @@ write.csv(plotave, 'C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//ANP
 # #doing contrasts 
 # emmeans(mtot, pairwise~drt|year, adjust="tukey")
 
+#what percent is andro
+
+pandro<-plotave %>%
+  pivot_wider(names_from = 'type', values_from = 'biomass', values_fill = 0) %>%
+  mutate(pandro=(Andro/Total)*100) %>%
+  group_by(drt) %>%
+  summarize(pandromean=mean(pandro))
+
+#graphing this
+andro<-plotave %>%
+  pivot_wider(names_from = 'type', values_from = 'biomass', values_fill = 0) %>%
+  mutate(pandro=(Andro/Total)*100) %>%
+  group_by(year, drt) %>%
+  summarize(pandromean=mean(pandro), sd=sd(pandro), n=length(pandro))%>%
+  mutate(se=sd/sqrt(n))
+
+ggplot(data=andro, aes(x=year, y=pandromean, color=drt))+
+  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
+  geom_point(size=3)+
+  geom_line()+
+  geom_errorbar(aes(ymin=pandromean-se, ymax=pandromean+se), width=0.075)+
+  xlab("Year")+
+  ylab(expression('Percent of ANPP that is A. gerardii'))+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  scale_color_manual(name="Treatment", breaks=c("C-C", 'PD-C', "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))
+
+
 #getting averages to make plot
 trtave<-plotave%>%
   group_by(year, drt, type)%>%
@@ -92,7 +119,7 @@ trtave<-plotave%>%
 
 tottoplot<-trtave %>% 
   filter(type=="Total") %>% 
-  mutate(label=ifelse(year==2015&drt=="C-C", "A", ifelse(year==2015&drt=="PD-C", "A", ifelse(year==2015&drt=="C-D"|year==2015&drt=='PD-D', "B", ifelse(year==2013&drt=='PD-C', "A", ifelse(year==2013&drt=='PD-D', 'B', ifelse(year==2013&drt=='C-C'|year==2013&drt=='C-D', 'AB', "")))))))
+  mutate(label=ifelse(year==2015&drt=="C-C", "A", ifelse(year==2015&drt=="PD-C", "AB", ifelse(year==2015&drt=="C-D", 'BC', ifelse(year==2015&drt=='PD-D', "C", ifelse(year==2013&drt=='PD-C', "A", ifelse(year==2013&drt=='PD-D', 'B', ifelse(year==2013&drt=='C-C'|year==2013&drt=='C-D', 'AB', ""))))))))
 
 
 # Making Figure 1 ---------------------------------------------------------
