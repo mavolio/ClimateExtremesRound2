@@ -1,5 +1,6 @@
 library(gridExtra)
 library(tidyverse)
+library(ggrepel)
 
 theme_set(theme_bw(12))
 
@@ -111,3 +112,39 @@ ruegraph<-ggplot(data=RUE, aes(x=Year, y=rue, color=drt))+
   theme(legend.position = 'none')
 
 grid.arrange(biomass, pd, ruegraph)
+
+alldatgraph<-alldat %>% 
+  select(Plot, Year, Andro, Sorg, Solidago, Total, drt, block) %>% 
+  pivot_longer(Andro:Total, names_to = 'Type', values_to = 'biomass') %>% 
+  filter(Year<2017)
+
+
+#all data through time with replicates
+ggplot(data=alldatgraph, aes(x=Year, y=biomass, color=as.factor(block), group=Plot, label=Plot))+
+  geom_point(size=3)+
+  geom_line()+
+  geom_text_repel()+
+  facet_grid(drt~Type, scales='free')+
+  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
+  annotate("rect", xmin=2010, xmax=2011.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
+  theme(legend.position = 'top')
+
+##all dat with woody plants for second round
+datgraph<-dat %>% 
+  left_join(trt) %>%
+  group_by(Plot, year, drt, block) %>% 
+  summarize_at(vars(Andro:Total), mean) %>% 
+  filter(drt!=".") %>% 
+  select(Plot, year, Andro, Sorg, Forbs, Grass, Woody, Total, drt, block) %>% 
+  pivot_longer(Andro:Total, names_to = 'Type', values_to = 'biomass')
+
+
+#all data through time with replicates
+ggplot(data=datgraph, aes(x=year, y=biomass, color=as.factor(block), group=Plot, label=Plot))+
+  geom_point(size=3)+
+  geom_line()+
+  geom_text_repel()+
+  facet_grid(drt~Type, scales='free')+
+  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
+  #annotate("rect", xmin=2010, xmax=2011.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
+  theme(legend.position = 'top')
