@@ -5,6 +5,7 @@ library(emmeans)
 library(car)
 #library(relaimpo)
 library(ggpubr)
+library(codyn)
 
 theme_set(theme_bw(12))
 #read in data
@@ -50,6 +51,30 @@ androstems<-read.csv("Stem Data//All_live_springStems_11-18.csv") %>%
          AndroResistStems=y2015-y2013) %>% 
   select(-y2015,-y2016, -y2013)
 
+sorgbiomasschange<-read.csv('ANPP\\ANPP_2012-2017_combinedrawdata.csv') %>% 
+  mutate(drop=ifelse(Plot==210&year==2015|Plot==102&year==2014, 1, 0))%>%
+  filter(drop!=1) %>% 
+  dplyr::select(Plot, Rep, Sorg, year) %>% 
+  filter(year==2013|year==2015|year==2016) %>% 
+  group_by(year, Plot) %>% 
+  summarise(Sorgbiomass=mean(Sorg)) %>% 
+  pivot_wider(names_from = year, values_from=Sorgbiomass, names_prefix = "y") %>% 
+  mutate(SorgRecoverBiomass=y2016-y2015,
+         SorgResistBiomass=y2015-y2013) %>% 
+  rename(plot=Plot) %>% 
+  dplyr::select(-y2015, -y2016, -y2013)
+
+sorgstems<-read.csv("Stem Data//All_live_springStems_11-18.csv") %>%  
+  select(Year, Plot, Sorg) %>% 
+  mutate(drop=ifelse(Plot==210&Year==2015|Plot==102&Year==2014, 1, 0))%>%
+  filter(drop!=1) %>% 
+  filter(Year==2013|Year==2015|Year==2016) %>%
+  rename(year=Year, plot=Plot) %>% 
+  pivot_wider(names_from = year, values_from = Sorg, names_prefix = "y") %>% 
+  mutate(SorgRecoverStems=y2016-y2015,
+         SorgResistStems=y2015-y2013) %>% 
+  select(-y2015,-y2016, -y2013)
+
 wp<-read.csv('water_potential\\CEE_WP_allyears.csv') %>% 
   group_by(Plot, year) %>% 
   summarize(wp=mean(wp)) %>% 
@@ -57,6 +82,33 @@ wp<-read.csv('water_potential\\CEE_WP_allyears.csv') %>%
   rename(plot=Plot) %>% 
   pivot_wider(names_from=year, names_prefix = "y", values_from=wp) %>% 
   rename(wp2015=y2015, wp2016=y2016)
+
+otherbiomasschange<-read.csv('ANPP\\ANPP_2012-2017_combinedrawdata.csv') %>% 
+  mutate(drop=ifelse(Plot==210&year==2015|Plot==102&year==2014, 1, 0))%>%
+  filter(drop!=1) %>% 
+  group_by(Plot, year, Rep) %>% 
+  mutate(Other=Grass+Solidago+Forbs+Woody) %>% 
+dplyr::select(Plot, Rep, Other, year) %>% 
+  filter(year==2013|year==2015|year==2016) %>% 
+  group_by(year, Plot) %>% 
+  summarise(Otherbiomass=mean(Other)) %>% 
+  pivot_wider(names_from = year, values_from=Otherbiomass, names_prefix = "y") %>% 
+  mutate(OtherRecoverBiomass=y2016-y2015,
+         OtherResistBiomass=y2015-y2013) %>% 
+  rename(plot=Plot) %>% 
+  dplyr::select(-y2015, -y2016, -y2013)
+
+otherstems<-read.csv("Stem Data//All_live_springStems_11-18.csv") %>%  
+  mutate(Other=Solidago+Grass+Forb+Wood) %>% 
+  dplyr::select(Year, Plot, Other) %>% 
+  mutate(drop=ifelse(Plot==210&Year==2015|Plot==102&Year==2014, 1, 0))%>%
+  filter(drop!=1) %>% 
+  filter(Year==2013|Year==2015|Year==2016) %>%
+  rename(year=Year, plot=Plot) %>% 
+  pivot_wider(names_from = year, values_from = Other, names_prefix = "y") %>% 
+  mutate(OtherRecoverStems=y2016-y2015,
+         OtherResistStems=y2015-y2013) %>% 
+  dplyr::select(-y2015,-y2016, -y2013)
 
 spdat<-read.csv("Sppcomp//Entered//spcomp_cee_2010_2017.csv")%>%
   filter(year==2013|year==2015|year==2016)
@@ -94,13 +146,17 @@ MechData<-baci.tot.1 %>%
   left_join(androstems) %>% 
   left_join(Androbiomasschange) %>% 
   left_join(wp) %>% 
-  left_join(rich)
+  left_join(rich) %>% 
+  left_join(sorgbiomasschange) %>% 
+  left_join(sorgstems) %>% 
+  left_join(otherbiomasschange) %>% 
+  left_join(otherstems)
 
-mresist<-lm(Resistance~wp2015+AndroResistStems+AndroResistBiomass+RichResist, data=MechData)
+mresist<-lm(Resistance~wp2015+AndroResistStems+AndroResistBiomass+RichResist+SorgResistBiomass+SorgResistStems+OtherResistBiomass+OtherResistStems, data=MechData)
 summary(mresist)
 calc.relimp(mresist)
 
-mrecov<-lm(Recovery~wp2016+AndroRecoverStems+AndroRecoverBiomass+RichRecover, data=MechData)
+mrecov<-lm(Recovery~wp2016+AndroRecoverStems+AndroRecoverBiomass+RichRecover+SorgRecoverBiomass+SorgRecoverStems+OtherRecoverBiomass+OtherRecoverStems, data=MechData)
 summary(mrecov)
 calc.relimp(mrecov)
 
@@ -237,19 +293,39 @@ AndrobiomassRecover<-
   ylab('ANPP Recovery')+
   xlab('Change in A. gerardii Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  geom_smooth( method='lm', se=T, color="black")+
+  geom_smooth( method='lm', se=T, color="black")
 AndrobiomassRecover
 
-Fig2<-ggarrange(npp2015, anpp.resist, wp2015,AndrobiomassResist, nrow=2, ncol=2, common.legend = T, legend='bottom')+
-  draw_plot_label(label = c("A)", "C)", "B)", 'D)'), size = 12,
-                  x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
-Fig2
+SorgbiomassResist<-
+  ggplot(data=MechData, aes(x=SorgResistBiomass, y=Resistance, color=drt))+
+  geom_point(size=3)+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  ylab('ANPP Resistance')+
+  xlab('Change in S. nutans Biomass')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  geom_smooth( method='lm', se=T, color="black")
+SorgbiomassResist
 
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig2_March25.jpeg', Fig2, width=8, height=8, units='in')
+SorgbiomassRecover<-
+  ggplot(data=MechData, aes(x=SorgRecoverBiomass , y=Recovery, color=drt))+
+  geom_point(size=3)+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  ylab('ANPP Recovery')+
+  xlab('Change in A. gerardii Biomass')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  geom_smooth( method='lm', se=T, color="black")
+SorgbiomassRecover
 
-Fig3<-ggarrange(npp2016, anpp.recov, wp2016,AndrobiomassRecover, nrow=2, ncol=2, common.legend = T, legend='bottom')+
+Fig3<-ggarrange(npp2015, anpp.resist, SorgbiomassResist,AndrobiomassResist, nrow=2, ncol=2, common.legend = T, legend='bottom')+
   draw_plot_label(label = c("A)", "C)", "B)", 'D)'), size = 12,
                   x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
 Fig3
 
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig3_March25.jpeg', Fig3, width=8, height=8, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig3_May29.jpeg', Fig3, width=8, height=8, units='in')
+
+Fig4<-ggarrange(npp2016, anpp.recov, SorgbiomassRecover,AndrobiomassRecover, nrow=2, ncol=2, common.legend = T, legend='bottom')+
+  draw_plot_label(label = c("A)", "C)", "B)", 'D)'), size = 12,
+                  x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
+Fig4
+
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig4_May29.jpeg', Fig4, width=8, height=8, units='in')
