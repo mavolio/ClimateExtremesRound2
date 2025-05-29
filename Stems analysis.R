@@ -20,10 +20,29 @@ stems<-read.csv("Stem Data//All_live_springStems_11-18.csv")%>%
   filter(Year>2012&Year<2017)
 
 
+stems2<-read.csv("Stem Data//All_live_springStems_11-18.csv")%>%
+  left_join(trt)%>%
+  filter(drt!=".") %>% 
+  pivot_longer(Andro:Wood, names_to = 'sp', values_to = 'stems') %>% 
+  filter(Year>2012&Year<2017) %>% 
+  group_by(Year, drt, sp) %>% 
+  summarise(m=mean(stems), sd=sd(stems), n=length(stems)) %>% 
+  mutate(se=sd/sqrt(n))
+
+ggplot(data=stems2, aes(x=Year, y=m, color=sp))+
+  geom_point()+
+  geom_line()+
+  geom_errorbar(aes(ymin=m-se, ymax=m+se), width=0.2)+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab("Year")+
+  ylab("Number of Stems")+
+  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
+  facet_wrap(~drt)
 
 
 stems2016<-stems%>%
-  filter(Year==2016)
+  filter(Year==2016) %>% 
+  
 
 #stats on andro 2016 stems
 mstems<-lmer(Andro~drt+(1|block)
