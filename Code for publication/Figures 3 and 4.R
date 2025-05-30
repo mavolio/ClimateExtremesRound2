@@ -311,7 +311,7 @@ SorgbiomassRecover<-
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Recovery')+
-  xlab('Change in A. gerardii Biomass')+
+  xlab('Change in S. nutans Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
   geom_smooth( method='lm', se=T, color="black")
 SorgbiomassRecover
