@@ -80,7 +80,7 @@ ggplot(data=avescores, aes(x=NMDS1, y=NMDS2, color=drt, label=year))+
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
     ylab("NMDS2")+
     xlab("NMDS1")+
-    annotate(x=-0.4, y = 0.2, "text", label= "Stress = 0.19")
+    annotate(x=-0.4, y = 0.2, "text", label= "Stress = 0.17")
 
 nmdsfig  
 
@@ -153,7 +153,9 @@ topsp<-ave%>%
  
 topsptograph<-racave %>% 
   right_join(topsp) %>% 
-  mutate(Drt=factor(drt, levels=c('C-C', 'PD-C', 'C-D', 'PD-D')))
+  mutate(Drt=factor(drt, levels=c('C-C', 'PD-C', 'C-D', 'PD-D')),
+         sp2=ifelse(sp=='A. ericoides', 'S. ericoides', sp)
+         )
 
 strip_cee <- strip_themed(background_x = elem_list_rect(fill = list("blue", "dodgerblue", "orange", "red")))
 labels=c('C-C'= 'C-C', 'C-D'='C-D', 'PD-C'='D-C', 'PD-D'='D-D')
