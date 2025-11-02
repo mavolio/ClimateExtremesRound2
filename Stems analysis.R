@@ -1,5 +1,6 @@
 library(tidyverse)
 library(gridExtra)
+theme_set(theme_bw(12))
 
 setwd("C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//")
 
@@ -17,83 +18,46 @@ stems<-read.csv("Stem Data//All_live_springStems_11-18.csv")%>%
        Othernowood=Sorg+Grass+Solidago+Forb)%>%
   mutate(drop=ifelse(Plot==210&Year==2015|Plot==102&Year==2014, 1, 0))%>%
   filter(drop!=1) %>% 
-  filter(Year>2012&Year<2017)
+  filter(Year>2012&Year<2017) %>% 
+  select(Year, Plot, Andro, Sorg, plotid,block, drt) %>% 
+  pivot_longer(Andro:Sorg, names_to = 'Species', values_to = 'Stems')
+
+#write csv for SAS
+write.csv(stems, 'C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Analyses in SAS//stems.csv', row.names=F)
 
 
+#to plot
 stems2<-read.csv("Stem Data//All_live_springStems_11-18.csv")%>%
   left_join(trt)%>%
   filter(drt!=".") %>% 
+  mutate(drop=ifelse(Plot==210&Year==2015|Plot==102&Year==2014, 1, 0))%>%
+  filter(drop!=1)%>% 
   pivot_longer(Andro:Wood, names_to = 'sp', values_to = 'stems') %>% 
   filter(Year>2012&Year<2017) %>% 
-  group_by(Year, drt, sp) %>% 
+  group_by(drt, sp) %>% 
   summarise(m=mean(stems), sd=sd(stems), n=length(stems)) %>% 
-  mutate(se=sd/sqrt(n))
+  mutate(se=sd/sqrt(n)) %>% 
+  filter(sp %in% c('Andro', 'Sorg')) %>% 
+  mutate(sig=case_when(
+    sp=='Andro' & drt=='PD-C' ~'A', 
+    sp=='Andro' & drt=='PD-D' ~'B',
+    sp=='Andro' & drt=='C-D' ~ 'BC',
+    sp=='Andro' & drt=='C-C' ~ 'C', 
+    sp=='Sorg' & drt =='C-D' ~ 'DE',
+    sp=='Sorg' & drt =='PD-C' ~ 'E', 
+    .default = 'D'
+  ))
 
-ggplot(data=stems2, aes(x=Year, y=m, color=sp))+
-  geom_point()+
-  geom_line()+
-  geom_errorbar(aes(ymin=m-se, ymax=m+se), width=0.2)+
+stems<-
+ggplot(data=stems2, aes(x=drt, y=m, fill=sp, label=sig))+
+  geom_bar(stat='identity', position=position_dodge(0.9))+
+  scale_fill_manual(name='Species', labels=c('A. gerardii', 'S. nutans'), values=c('black', 'gray'))+
+  scale_x_discrete(limits=c('C-C', 'PD-C', 'C-D', 'PD-D'))+
+  geom_errorbar(aes(ymin=m-se, ymax=m+se), position=position_dodge(0.9), width=0.2)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
-  xlab("Year")+
+  xlab("Drought Treatment")+
   ylab("Number of Stems")+
-  annotate("rect", xmin=2013.5, xmax=2015.5, ymin=-Inf, ymax=Inf, alpha = .2, fill="gray")+
-  facet_wrap(~drt)
+  geom_text(position=position_dodge(0.9), aes(y=m+se*2))
 
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig_Stems.jpeg', stems, width=8, height=8, units='in')
 
-stems2016<-stems%>%
-  filter(Year==2016) %>% 
-  
-
-#stats on andro 2016 stems
-mstems<-lmer(Andro~drt+(1|block)
-         ,data=stems2016)
-summary(mstems)
-anova(mstems, ddf="Kenward-Roger") #use this ddf for repeated measures.
-#no sig diff in number of stems
-
-mstems<-stems2016%>%
-  group_by(drt)%>%
-  summarize(mean=mean(Andro), sd=sd(Andro), n=length(Andro))%>%
-  mutate(se=sd/sqrt(n))
-
-stemsfig<-ggplot(data=mstems, aes(x=drt, y=mean, fill=drt))+
-  geom_bar(stat="identity")+
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.2)+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none")+
-  scale_fill_manual(name="Treatment", breaks=c("C-C", "PD-C", "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
-  xlab("Treatment")+
-  ylab("Number of A. gerardii Stems")+
-  scale_x_discrete(limits=c("C-C", "PD-C", "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"))
-
-
-#water potential
-wp2016<-wp%>%
-  filter(year==2016)%>%
-  group_by(Plot, drt, block)%>%
-  summarize(wp=mean(wp))
-
-#stats on andro 2016 wp
-mwp<-lmer(wp~drt+(1|block)
-             ,data=wp2016)
-summary(mwp)
-anova(mwp, ddf="Kenward-Roger") #use this ddf for repeated measures.
-#no sig diff in number of stems
-
-mwp<-wp2016%>%
-  group_by(drt)%>%
-  summarize(mean=mean(wp), sd=sd(wp), n=length(wp))%>%
-  mutate(se=sd/sqrt(n))
-
-wpfig<-ggplot(data=mwp, aes(x=drt, y=mean, fill=drt))+
-  geom_bar(stat="identity")+
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=0.2)+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), legend.position = "none")+
-  scale_fill_manual(name="Treatment", breaks=c("C-C", "PD-C", "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"), values=c("blue", "dodgerblue", "orange", "red"))+
-  xlab("Treatment")+
-  ylab("Mid-day leaf water potential (Mpa)")+
-  scale_x_discrete(limits=c("C-C", "PD-C", "C-D", "PD-D"), labels=c("C->C", "D->C", "C->D", "D->D"))
-
-#have to run code in ANPP data stats to make difffig
-fig4<-grid.arrange(difffig, arrangeGrob(stemsfig, wpfig, ncol=2), nrow = 2)
-
-ggsave("C:\\Users\\mavolio2\\Dropbox\\Konza Research\\CEE_Part2\\Manuscript\\Fig4.jpeg", fig4, height=200, width=250, units="mm", dpi=300)
