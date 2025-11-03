@@ -76,7 +76,7 @@ ggplot(data=avescores, aes(x=NMDS1, y=NMDS2, color=drt, label=year))+
     geom_path()+
     geom_errorbar(aes(ymin=NMDS2-se2, ymax=NMDS2+se2))+
     geom_errorbarh(aes(xmin=NMDS1-se1, xmax=NMDS1+se1))+
-  scale_color_manual(name="Treatment", values = c("blue", "orange", "dodgerblue", "red"), labels=c("C->C", "C->D", "D->C", "D->D"))+
+    scale_color_manual(name="Treatment", values = c("blue", "orange", "dodgerblue", "red"), labels=c("C->C", "C->D", "D->C", "D->D"))+
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
     ylab("NMDS2")+
     xlab("NMDS1")+
