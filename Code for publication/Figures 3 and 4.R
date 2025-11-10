@@ -6,6 +6,8 @@ library(car)
 #library(relaimpo)
 library(ggpubr)
 library(codyn)
+library(gridExtra)
+library(cowplot)
 
 theme_set(theme_bw(12))
 #read in data
@@ -174,10 +176,10 @@ npp2015<-ggplot(subset(NPPmeans, year==2015), aes(x=drt, fill = drt)) +
   geom_errorbar(aes(ymin=manpp-seanpp, ymax=manpp+seanpp), width=.1) +
   geom_errorbar(aes(ymin=-mbnpp+sebnpp, ymax=-mbnpp-sebnpp), width=.1) +
   geom_hline(aes(yintercept = 0)) +
-  scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C-C", 'D-C', 'C-D', 'D-D'))+
+  scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"))+
   scale_y_continuous(breaks=seq(-450, 900, 200))+
   ylab(expression(BNPP~(g~m^-2)~~~~~~~~~~~~~~~ANPP~(g~m^-2)))+
-  scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
+  scale_fill_manual(values=c('blue', 'dodgerblue','orange', 'red'), limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D")) +
   xlab("")+
   theme_bw(12) +
   theme(panel.grid = element_blank())+
@@ -204,10 +206,10 @@ npp2016<-ggplot(subset(NPPmeans, year==2016), aes(x=drt, fill = drt)) +
   geom_errorbar(aes(ymin=manpp-seanpp, ymax=manpp+seanpp), width=.1) +
   geom_errorbar(aes(ymin=-mbnpp+sebnpp, ymax=-mbnpp-sebnpp), width=.1) +
   geom_hline(aes(yintercept = 0)) +
-  scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C-C", 'D-C', 'C-D', 'D-D'))+
+  scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"))+
   scale_y_continuous(breaks=seq(-450, 900, 200))+
   ylab(expression(BNPP~(g~m^-2)~~~~~~~~~~~~~~~ANPP~(g~m^-2)))+
-  scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
+  scale_fill_manual(values=c('blue', 'dodgerblue','orange', 'red'), limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D")) +
   xlab("")+
   theme_bw(12) +
   theme(panel.grid = element_blank())+
@@ -226,9 +228,9 @@ anpp.resist<-ggplot(data=subset(baci.tot.3, variable == "Resistance"), aes(x=drt
   geom_col(aes(y=mean), width = .5, color = 'black')+ 
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.1) +
   geom_hline(aes(yintercept = 0)) +
-  scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C-C", 'D-C', 'C-D', 'D-D'))+
+  scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"))+
   ylab("ANPP Resistance")+
-  scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
+  scale_fill_manual(values=c('blue', 'dodgerblue','orange', 'red'), limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D")) +
   xlab("")+
   theme_bw(12)+
   theme(panel.grid = element_blank(), legend.position = "none")+
@@ -241,9 +243,9 @@ anpp.resist
 anpp.recov<-ggplot(data=subset(baci.tot.3, variable == "Recovery"), aes(x=drt, y = mean, fill=drt))+
   geom_col(aes(y=mean), width = .5, color = 'black')+ 
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.1) +
-  scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C-C", 'D-C', 'C-D', 'D-D'))+
+  scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"))+
   ylab("ANPP Recovery")+
-  scale_fill_manual(values=c('blue', 'orange','dodgerblue', 'red')) +
+  scale_fill_manual(values=c('blue', 'dodgerblue','orange', 'red'), limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D")) +
   xlab("")+
   theme_bw(12)+
   theme(panel.grid = element_blank(), legend.position = "none")+
@@ -257,7 +259,7 @@ anpp.recov
 wp2015<-
   ggplot(data=MechData, aes(x=wp2015, y=Resistance, color=drt))+
   geom_point(size=3)+
-  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Resistance')+
   xlab('Water Potential')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -269,7 +271,7 @@ wp2015
 wp2016<-
   ggplot(data=MechData, aes(x=wp2016, y=Recovery, color=drt))+
   geom_point(size=3)+
-  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Recovery')+
   xlab('Water Potential')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -279,7 +281,7 @@ wp2016
 AndrobiomassResist<-
   ggplot(data=MechData, aes(x=AndroResistBiomass, y=Resistance, color=drt))+
   geom_point(size=3)+
-  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Resistance')+
   xlab('Change in A. gerardii Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -289,7 +291,7 @@ AndrobiomassResist
 AndrobiomassRecover<-
   ggplot(data=MechData, aes(x=AndroRecoverBiomass , y=Recovery, color=drt))+
   geom_point(size=3)+
-  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Recovery')+
   xlab('Change in A. gerardii Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -299,7 +301,7 @@ AndrobiomassRecover
 SorgbiomassResist<-
   ggplot(data=MechData, aes(x=SorgResistBiomass, y=Resistance, color=drt))+
   geom_point(size=3)+
-  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Resistance')+
   xlab('Change in S. nutans Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -309,7 +311,7 @@ SorgbiomassResist
 SorgbiomassRecover<-
   ggplot(data=MechData, aes(x=SorgRecoverBiomass , y=Recovery, color=drt))+
   geom_point(size=3)+
-  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c('C-C', 'D-C','C-D','D-D'), values=c('blue', 'dodgerblue','orange', 'red'))+
+  scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Recovery')+
   xlab('Change in S. nutans Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
@@ -321,11 +323,11 @@ Fig3<-ggarrange(npp2015, anpp.resist, SorgbiomassResist,AndrobiomassResist, nrow
                   x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
 Fig3
 
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig3_May29.jpeg', Fig3, width=8, height=8, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig3_Nov3.jpeg', Fig3, width=8, height=8, units='in')
 
 Fig4<-ggarrange(npp2016, anpp.recov, SorgbiomassRecover,AndrobiomassRecover, nrow=2, ncol=2, common.legend = T, legend='bottom')+
   draw_plot_label(label = c("A)", "C)", "B)", 'D)'), size = 12,
                   x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
 Fig4
 
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig4_May29.jpeg', Fig4, width=8, height=8, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig4_Nov3.jpeg', Fig4, width=8, height=8, units='in')
