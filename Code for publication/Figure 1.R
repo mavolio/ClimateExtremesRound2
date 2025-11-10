@@ -58,6 +58,7 @@ cee_ppt2<-cee_ppt %>%
 #getting quantiles
 quantile_.05  <- qnorm(0.05,mean=mean_ppt,sd_ppt)
 quantile_.07  <- qnorm(0.07,mean=mean_ppt,sd_ppt)
+quantile_.07  <- qnorm(0.1,mean=mean_ppt,sd_ppt)
 quantile_.9  <- qnorm(0.9,mean=mean_ppt,sd_ppt)
 quantile_.95  <- qnorm(0.95,mean=mean_ppt,sd_ppt)
 
