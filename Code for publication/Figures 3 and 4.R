@@ -8,6 +8,7 @@ library(ggpubr)
 library(codyn)
 library(gridExtra)
 library(cowplot)
+library(vegan)
 
 theme_set(theme_bw(12))
 #read in data
@@ -152,15 +153,22 @@ MechData<-baci.tot.1 %>%
   left_join(sorgbiomasschange) %>% 
   left_join(sorgstems) %>% 
   left_join(otherbiomasschange) %>% 
-  left_join(otherstems)
+  left_join(otherstems) %>% 
+  filter(drt %in% c('PD-D', 'C-D'))
 
 mresist<-lm(Resistance~wp2015+AndroResistStems+AndroResistBiomass+RichResist+SorgResistBiomass+SorgResistStems+OtherResistBiomass+OtherResistStems, data=MechData)
+vif(mresist)
 summary(mresist)
 calc.relimp(mresist)
 
+
 mrecov<-lm(Recovery~wp2016+AndroRecoverStems+AndroRecoverBiomass+RichRecover+SorgRecoverBiomass+SorgRecoverStems+OtherRecoverBiomass+OtherRecoverStems, data=MechData)
+vif(mrecov)
 summary(mrecov)
 calc.relimp(mrecov)
+
+
+
 
 
 #NPP Figures
@@ -169,6 +177,8 @@ NPPmeans<-NPP %>%
   summarise(manpp=mean(anpp, na.rm=T), mbnpp=mean(bnpp, na.rm=T),
             sdanpp=sd(anpp,na.rm=T), sdbnpp=sd(bnpp,na.rm=T), n=length(bnpp)) %>% 
   mutate(seanpp=sdanpp/sqrt(n), sebnpp=sdbnpp/sqrt(n))
+
+hist(ANPP$anpp)
 
 npp2015<-ggplot(subset(NPPmeans, year==2015), aes(x=drt, fill = drt)) + 
   geom_col(aes(y=manpp), width = .5, color = 'black')+ 
@@ -229,7 +239,7 @@ anpp.resist<-ggplot(data=subset(baci.tot.3, variable == "Resistance"), aes(x=drt
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.1) +
   geom_hline(aes(yintercept = 0)) +
   scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"))+
-  ylab("ANPP Resistance")+
+  ylab("ANPP % Change")+
   scale_fill_manual(values=c('blue', 'dodgerblue','orange', 'red'), limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D")) +
   xlab("")+
   theme_bw(12)+
@@ -244,7 +254,7 @@ anpp.recov<-ggplot(data=subset(baci.tot.3, variable == "Recovery"), aes(x=drt, y
   geom_col(aes(y=mean), width = .5, color = 'black')+ 
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width=.1) +
   scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"))+
-  ylab("ANPP Recovery")+
+  ylab("ANPP % Change")+
   scale_fill_manual(values=c('blue', 'dodgerblue','orange', 'red'), limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D")) +
   xlab("")+
   theme_bw(12)+
@@ -283,8 +293,8 @@ AndrobiomassResist<-
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Resistance')+
-  xlab('Change in A. gerardii Biomass')+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab('Change in <i>A. gerardii<i> Biomass')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x = ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
 AndrobiomassResist
 
@@ -293,8 +303,8 @@ AndrobiomassRecover<-
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Recovery')+
-  xlab('Change in A. gerardii Biomass')+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab('Change in <i>A. gerardii<i> Biomass')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x = ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
 AndrobiomassRecover
 
@@ -303,31 +313,41 @@ SorgbiomassResist<-
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Resistance')+
-  xlab('Change in S. nutans Biomass')+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab('Change in <i>S. nutans<i> Biomass')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x=ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
 SorgbiomassResist
+# 
+# SorgbiomassRecover<-
+#   ggplot(data=MechData, aes(x=SorgRecoverBiomass , y=Recovery, color=drt))+
+#   geom_point(size=3)+
+#   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
+#   ylab('ANPP Recovery')+
+#   xlab('Change in S. nutans Biomass')+
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+#   geom_smooth( method='lm', se=T, color="black")
+# SorgbiomassRecover
 
-SorgbiomassRecover<-
-  ggplot(data=MechData, aes(x=SorgRecoverBiomass , y=Recovery, color=drt))+
+AndroStemRecover<-
+  ggplot(data=MechData, aes(x=AndroRecoverStems , y=Recovery, color=drt))+
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP Recovery')+
-  xlab('Change in S. nutans Biomass')+
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
+  xlab('Change in <i>A. gerardii<i> Stems')+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x = ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
-SorgbiomassRecover
+AndroStemRecover
 
 Fig3<-ggarrange(npp2015, anpp.resist, SorgbiomassResist,AndrobiomassResist, nrow=2, ncol=2, common.legend = T, legend='bottom')+
   draw_plot_label(label = c("A)", "C)", "B)", 'D)'), size = 12,
                   x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
 Fig3
 
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig3_Nov3.jpeg', Fig3, width=8, height=8, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig3_Jan26.jpeg', Fig3, width=8, height=8, units='in')
 
-Fig4<-ggarrange(npp2016, anpp.recov, SorgbiomassRecover,AndrobiomassRecover, nrow=2, ncol=2, common.legend = T, legend='bottom')+
+Fig4<-ggarrange(npp2016, anpp.recov, AndroStemRecover,AndrobiomassRecover, nrow=2, ncol=2, common.legend = T, legend='bottom')+
   draw_plot_label(label = c("A)", "C)", "B)", 'D)'), size = 12,
                   x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
 Fig4
 
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig4_Nov3.jpeg', Fig4, width=8, height=8, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig4_Jan26.jpeg', Fig4, width=8, height=8, units='in')
