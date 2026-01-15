@@ -66,17 +66,20 @@ scores<-plots%>%
 avescores<-scores%>%
    group_by(year, drt)%>%
   summarize(NMDS1=mean(MDS1), NMDS2=mean(MDS2), sd1=sd(MDS1), sd2=mean(MDS2))%>%
-    mutate(se1=sd1/sqrt(8), se2=sd2/sqrt(8))
+    mutate(se1=sd1/sqrt(8), se2=sd2/sqrt(8),
+           sig=ifelse(year==2013, 0, 1))
+
 
 #make figure with error bars fo year subsets
 nmdsfig<-
-ggplot(data=avescores, aes(x=NMDS1, y=NMDS2, color=drt, label=year))+
-    geom_point(size=5)+
+ggplot(data=avescores, aes(x=NMDS1, y=NMDS2, color=drt, label=year, fill=as.factor(sig), group = drt))+
+    geom_point(size=5, shape=21, stroke=2)+
     geom_text(hjust=0, vjust=-2, show.legend = F)+
     geom_path()+
     geom_errorbar(aes(ymin=NMDS2-se2, ymax=NMDS2+se2))+
     geom_errorbarh(aes(xmin=NMDS1-se1, xmax=NMDS1+se1))+
     scale_color_manual(name="Treatment", values = c("blue", "orange", "dodgerblue", "red"), labels=c("C->C", "C->D", "D->C", "D->D"))+
+  scale_fill_manual(guide=F, values=c('black', 'white'))+
     theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())+
     ylab("NMDS2")+
     xlab("NMDS1")+
@@ -154,16 +157,15 @@ topsp<-ave%>%
 topsptograph<-racave %>% 
   right_join(topsp) %>% 
   mutate(Drt=factor(drt, levels=c('C-C', 'PD-C', 'C-D', 'PD-D')),
-         sp2=ifelse(sp=='A. ericoides', 'S. ericoides', sp)
-         )
+         sp2=ifelse(sp=='A. ericoides', 'S. ericoides', sp))
 
 strip_cee <- strip_themed(background_x = elem_list_rect(fill = list("blue", "dodgerblue", "orange", "red")))
 labels=c('C-C'= 'C-C', 'C-D'='C-D', 'PD-C'='D-C', 'PD-D'='D-D')
 
 racs<-
-ggplot(data=topsptograph, aes(x=year, y=mabund, shape=sp, color=trait_cat))+
+ggplot(data=topsptograph, aes(x=year, y=mabund, shape=sp2, color=trait_cat))+
   geom_point(size=3, stroke = 1.5)+
-  geom_line(size=1)+
+  geom_line(linewidth=1)+
   facet_wrap2(~Drt,  strip=strip_cee, labeller=labeller(Drt=labels), nrow=1)+
   scale_y_continuous(limits=c(0,100))+
   scale_color_manual(name="Functional\nType", values=c("green3", "forestgreen","purple"), breaks = c("C3 Gram.", "C4 Gram.", "Non-N-Fixing Forb"), labels=c('C3 Gram.', 'C4 Gram.', 'Forb'))+
@@ -172,7 +174,7 @@ ggplot(data=topsptograph, aes(x=year, y=mabund, shape=sp, color=trait_cat))+
   xlab("Year")+
   ylab("Absolute Cover")+
   theme(strip.text = element_text(colour = 'white', face='bold'), legend.position = 'bottom', axis.text.x=element_text(angle=70, hjust=1))+
-  guides(shape = guide_legend(nrow = 4), col=guide_legend(nrow=2))
+  guides(shape = guide_legend(nrow = 4, label.theme = element_text(face = "italic")), col=guide_legend(nrow=2))
 racs
 fig2<-grid.arrange(nmdsfig, racs)
 
@@ -181,5 +183,5 @@ pfig2 <- as_ggplot(fig2) +                                # transform to a ggplo
                   x = c(0, 0), y = c(1, 0.5))
 pfig2
 
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig2_May25.jpeg', pfig2, width=7.6, height=8, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig2_Jan26.jpeg', pfig2, width=7.6, height=8, units='in')
 
