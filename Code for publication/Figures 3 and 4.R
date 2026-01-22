@@ -180,14 +180,15 @@ NPPmeans<-NPP %>%
 
 hist(ANPP$anpp)
 
-npp2015<-ggplot(subset(NPPmeans, year==2015), aes(x=drt, fill = drt)) + 
+npp2015<-
+  ggplot(subset(NPPmeans, year==2015), aes(x=drt, fill = drt)) + 
   geom_col(aes(y=manpp), width = .5, color = 'black')+ 
   geom_col(aes(y=-mbnpp), width = .5, color = 'black')+
   geom_errorbar(aes(ymin=manpp-seanpp, ymax=manpp+seanpp), width=.1) +
   geom_errorbar(aes(ymin=-mbnpp+sebnpp, ymax=-mbnpp-sebnpp), width=.1) +
   geom_hline(aes(yintercept = 0)) +
   scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"))+
-  scale_y_continuous(breaks=seq(-450, 900, 200))+
+  scale_y_continuous(breaks=seq(-450, 900, 200), labels = c(450, 250, 50, 150, 350, 550, 750))+
   ylab(expression(BNPP~(g~m^-2)~~~~~~~~~~~~~~~ANPP~(g~m^-2)))+
   scale_fill_manual(values=c('blue', 'dodgerblue','orange', 'red'), limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D")) +
   xlab("")+
@@ -206,6 +207,7 @@ npp2015<-ggplot(subset(NPPmeans, year==2015), aes(x=drt, fill = drt)) +
   annotate("text", x=3, y=50, label="B", size=4, fontface=2)+
   annotate("text", x=4, y=50, label="C", size=4, fontface=2)+
   labs(fill="Drought Treatment")
+  
 npp2015
 
 #2016 plot
@@ -217,7 +219,7 @@ npp2016<-ggplot(subset(NPPmeans, year==2016), aes(x=drt, fill = drt)) +
   geom_errorbar(aes(ymin=-mbnpp+sebnpp, ymax=-mbnpp-sebnpp), width=.1) +
   geom_hline(aes(yintercept = 0)) +
   scale_x_discrete(limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"))+
-  scale_y_continuous(breaks=seq(-450, 900, 200))+
+  scale_y_continuous(breaks=seq(-450, 900, 200),labels = c(450, 250, 50, 150, 350, 550, 750))+
   ylab(expression(BNPP~(g~m^-2)~~~~~~~~~~~~~~~ANPP~(g~m^-2)))+
   scale_fill_manual(values=c('blue', 'dodgerblue','orange', 'red'), limits=c("C-C", 'PD-C', 'C-D', 'PD-D'), labels=c("C->C", "D->C", "C->D", "D->D")) +
   xlab("")+
