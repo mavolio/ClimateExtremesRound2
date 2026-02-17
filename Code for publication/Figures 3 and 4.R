@@ -9,6 +9,8 @@ library(codyn)
 library(gridExtra)
 library(cowplot)
 library(vegan)
+library(ggtext)
+
 
 theme_set(theme_bw(12))
 #read in data
@@ -194,18 +196,18 @@ npp2015<-
   xlab("")+
   theme_bw(12) +
   theme(panel.grid = element_blank())+
-  annotate("text", x=1, y=870, label="A", size=4)+
-  annotate("text", x=2, y=850, label="A", size=4)+
-  annotate("text", x=3, y=640, label="B", size=4)+
-  annotate("text", x=4, y=430, label="C", size=4)+
-  annotate("text", x=1, y=-330, label="A", size=4)+
-  annotate("text", x=2, y=-270, label="B", size=4)+
-  annotate("text", x=3, y=-270, label="B", size=4)+
-  annotate("text", x=4, y=-150, label="C", size=4)+
-  annotate("text", x=1, y=50, label="A", size=4, fontface=2)+
-  annotate("text", x=2, y=50, label="A", size=4, fontface=2)+
-  annotate("text", x=3, y=50, label="B", size=4, fontface=2)+
-  annotate("text", x=4, y=50, label="C", size=4, fontface=2)+
+  annotate("text", x=1, y=870, label="a", size=4)+
+  annotate("text", x=2, y=850, label="a", size=4)+
+  annotate("text", x=3, y=640, label="b", size=4)+
+  annotate("text", x=4, y=430, label="b", size=4)+
+  annotate("text", x=1, y=-330, label="a", size=4)+
+  annotate("text", x=2, y=-270, label="b", size=4)+
+  annotate("text", x=3, y=-270, label="b", size=4)+
+  annotate("text", x=4, y=-150, label="c", size=4)+
+  annotate("text", x=1, y=50, label="a", size=4, fontface=2)+
+  annotate("text", x=2, y=50, label="a", size=4, fontface=2)+
+  annotate("text", x=3, y=50, label="b", size=4, fontface=2)+
+  annotate("text", x=4, y=50, label="c", size=4, fontface=2)+
   labs(fill="Drought Treatment")
   
 npp2015
@@ -246,10 +248,10 @@ anpp.resist<-ggplot(data=subset(baci.tot.3, variable == "Resistance"), aes(x=drt
   xlab("")+
   theme_bw(12)+
   theme(panel.grid = element_blank(), legend.position = "none")+
-  annotate("text", x=1, y=0.45, label="A", size=4)+
-  annotate("text", x=2, y=0.35, label="AB", size=4)+
-  annotate("text", x=3, y=0.2, label="BC", size=4)+
-  annotate("text", x=4, y=-0.45, label="C", size=4)
+  annotate("text", x=1, y=0.45, label="a", size=4)+
+  annotate("text", x=2, y=0.35, label="ab", size=4)+
+  annotate("text", x=3, y=0.2, label="bc", size=4)+
+  annotate("text", x=4, y=-0.45, label="c", size=4)
 anpp.resist
 
 anpp.recov<-ggplot(data=subset(baci.tot.3, variable == "Recovery"), aes(x=drt, y = mean, fill=drt))+
@@ -261,10 +263,10 @@ anpp.recov<-ggplot(data=subset(baci.tot.3, variable == "Recovery"), aes(x=drt, y
   xlab("")+
   theme_bw(12)+
   theme(panel.grid = element_blank(), legend.position = "none")+
-  annotate("text", x=1, y=0.25, label="A", size=4)+
-  annotate("text", x=2, y=0.4, label="AB", size=4)+
-  annotate("text", x=3, y=0.8, label="B", size=4)+
-  annotate("text", x=4, y=1.4, label="C", size=4)
+  annotate("text", x=1, y=0.25, label="a", size=4)+
+  annotate("text", x=2, y=0.4, label="ab", size=4)+
+  annotate("text", x=3, y=0.8, label="a", size=4)+
+  annotate("text", x=4, y=1.4, label="b", size=4)
 anpp.recov
 
 #regression figures
@@ -294,7 +296,7 @@ AndrobiomassResist<-
   ggplot(data=MechData, aes(x=AndroResistBiomass, y=Resistance, color=drt))+
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
-  ylab('ANPP Resistance')+
+  ylab('ANPP % Change')+
   xlab('Change in <i>A. gerardii<i> Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x = ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
