@@ -265,8 +265,8 @@ anpp.recov<-ggplot(data=subset(baci.tot.3, variable == "Recovery"), aes(x=drt, y
   theme(panel.grid = element_blank(), legend.position = "none")+
   annotate("text", x=1, y=0.25, label="a", size=4)+
   annotate("text", x=2, y=0.4, label="ab", size=4)+
-  annotate("text", x=3, y=0.8, label="a", size=4)+
-  annotate("text", x=4, y=1.4, label="b", size=4)
+  annotate("text", x=3, y=0.8, label="b", size=4)+
+  annotate("text", x=4, y=1.4, label="c", size=4)
 anpp.recov
 
 #regression figures
@@ -306,7 +306,7 @@ AndrobiomassRecover<-
   ggplot(data=MechData, aes(x=AndroRecoverBiomass , y=Recovery, color=drt))+
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
-  ylab('ANPP Recovery')+
+  ylab('ANPP % Change')+
   xlab('Change in <i>A. gerardii<i> Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x = ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
@@ -316,7 +316,7 @@ SorgbiomassResist<-
   ggplot(data=MechData, aes(x=SorgResistBiomass, y=Resistance, color=drt))+
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
-  ylab('ANPP Resistance')+
+  ylab('ANPP % Change')+
   xlab('Change in <i>S. nutans<i> Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x=ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
@@ -336,7 +336,7 @@ AndroStemRecover<-
   ggplot(data=MechData, aes(x=AndroRecoverStems , y=Recovery, color=drt))+
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
-  ylab('ANPP Recovery')+
+  ylab('Stems % Change')+
   xlab('Change in <i>A. gerardii<i> Stems')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x = ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
@@ -347,11 +347,11 @@ Fig3<-ggarrange(npp2015, anpp.resist, SorgbiomassResist,AndrobiomassResist, nrow
                   x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
 Fig3
 
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig3_Jan26.jpeg', Fig3, width=8, height=8, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig3_Feb18.jpeg', Fig3, width=8, height=8, units='in')
 
 Fig4<-ggarrange(npp2016, anpp.recov, AndroStemRecover,AndrobiomassRecover, nrow=2, ncol=2, common.legend = T, legend='bottom')+
   draw_plot_label(label = c("A)", "C)", "B)", 'D)'), size = 12,
                   x = c(0, 0, 0.5, 0.5), y = c(1, 0.5, 1, 0.5))
 Fig4
 
-ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig4_Jan26.jpeg', Fig4, width=8, height=8, units='in')
+ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig4_Feb18.jpeg', Fig4, width=8, height=8, units='in')
