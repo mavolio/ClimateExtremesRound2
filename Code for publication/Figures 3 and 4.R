@@ -204,10 +204,10 @@ npp2015<-
   annotate("text", x=2, y=-270, label="b", size=4)+
   annotate("text", x=3, y=-270, label="b", size=4)+
   annotate("text", x=4, y=-150, label="c", size=4)+
-  annotate("text", x=1, y=50, label="a", size=4, fontface=2)+
-  annotate("text", x=2, y=50, label="a", size=4, fontface=2)+
-  annotate("text", x=3, y=50, label="b", size=4, fontface=2)+
-  annotate("text", x=4, y=50, label="c", size=4, fontface=2)+
+  annotate("text", x=1, y=50, label="A", size=4, fontface=2)+
+  annotate("text", x=2, y=50, label="A", size=4, fontface=2)+
+  annotate("text", x=3, y=50, label="B", size=4, fontface=2)+
+  annotate("text", x=4, y=50, label="C", size=4, fontface=2)+
   labs(fill="Drought Treatment")
   
 npp2015
@@ -297,7 +297,7 @@ AndrobiomassResist<-
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP % Change')+
-  xlab('Change in <i>A. gerardii<i> Biomass')+
+  xlab('% Change in <i>A. gerardii<i> Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x = ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
 AndrobiomassResist
@@ -307,7 +307,7 @@ AndrobiomassRecover<-
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP % Change')+
-  xlab('Change in <i>A. gerardii<i> Biomass')+
+  xlab('% Change in <i>A. gerardii<i> Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x = ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
 AndrobiomassRecover
@@ -317,7 +317,7 @@ SorgbiomassResist<-
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('ANPP % Change')+
-  xlab('Change in <i>S. nutans<i> Biomass')+
+  xlab('% Change in <i>S. nutans<i> Biomass')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x=ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
 SorgbiomassResist
@@ -337,7 +337,7 @@ AndroStemRecover<-
   geom_point(size=3)+
   scale_color_manual(name="Treatment", breaks=c('C-C','PD-C','C-D','PD-D'), labels=c("C->C", "D->C", "C->D", "D->D"), values=c('blue', 'dodgerblue','orange', 'red'))+
   ylab('Stems % Change')+
-  xlab('Change in <i>A. gerardii<i> Stems')+
+  xlab('% Change in <i>A. gerardii<i> Stems')+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), axis.title.x = ggtext::element_markdown())+
   geom_smooth( method='lm', se=T, color="black")
 AndroStemRecover
