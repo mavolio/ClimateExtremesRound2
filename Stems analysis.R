@@ -61,3 +61,4 @@ ggplot(data=stems2, aes(x=drt, y=m, fill=sp, label=sig))+
 
 ggsave('C://Users//mavolio2//Dropbox//Konza Research//CEE_Part2//Manuscript//Fig_Stems.jpeg', stems, width=8, height=8, units='in')
 
+#this is just a test
